@@ -74,6 +74,7 @@ env/
 *.csv
 *.xlsx
 *.parquet
+# But keep tests/data for test fixtures
 data/
 
 # OS

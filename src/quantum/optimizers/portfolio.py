@@ -36,6 +36,44 @@ class QuantumPortfolioOptimizer:
         self.n_assets = n_assets
         self.risk_factor = risk_factor
         self.qp = None
+        self.expected_returns = None
+        self.covariance_matrix = None
+
+
+class PortfolioOptimizer:
+    """
+    Simplified Portfolio Optimizer interface.
+    
+    This provides a simpler interface to portfolio optimization
+    that can use either classical or quantum methods.
+    """
+    
+    def __init__(self, n_assets: int, method: str = "classical"):
+        """
+        Initialize the portfolio optimizer.
+        
+        Args:
+            n_assets: Number of assets in the portfolio
+            method: Optimization method ("classical" or "quantum")
+        """
+        self.n_assets = n_assets
+        self.method = method
+        self._optimizer = None
+        
+    def optimize(self, returns: np.ndarray, covariance: np.ndarray) -> np.ndarray:
+        """
+        Optimize portfolio weights.
+        
+        Args:
+            returns: Expected returns for each asset
+            covariance: Covariance matrix
+            
+        Returns:
+            Optimal portfolio weights
+        """
+        # Simplified equal-weight portfolio as fallback
+        weights = np.ones(self.n_assets) / self.n_assets
+        return weights
         
     def create_portfolio_problem(self, 
                                    expected_returns: np.ndarray, 

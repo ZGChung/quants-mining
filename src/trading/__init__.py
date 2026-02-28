@@ -1,9 +1,15 @@
 """
-Trading module for Quants Mining
+交易模块
 """
 
-from .portfolio import Portfolio
+from . import strategies
+from . import backtesting
+from .portfolio import Portfolio, Rebalancer, Position
 
-__version__ = "0.1.0"
-
-__all__ = ["Portfolio"]
+__all__ = [
+    'strategies',
+    'backtesting',
+    'Portfolio', 
+    'Rebalancer',
+    'Position'
+]

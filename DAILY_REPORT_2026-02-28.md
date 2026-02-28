@@ -1,4 +1,4 @@
-# 每日开发进度报告 (2026-02-28) - 更新
+# 每日开发进度报告 (2026-02-28) - 更新 v2
 
 ## 今日进度
 
@@ -12,25 +12,46 @@
    - SMACrossover, RSIStrategy, MACDStrategy, BollingerBandsStrategy, MomentumStrategy
 
 3. **回测模块** (`src/trading/backtesting/`)
-   - 回测引擎 (手续费、滑点、绩效指标)
+   - `engine.py` - 单股票回测引擎
+   - `portfolio_backtest.py` - 组合策略回测引擎
 
-4. **投资组合模块** (`src/trading/portfolio.py`)
-   - 仓位管理、再平衡
+4. **参数优化模块** (`src/trading/optimize.py`) 🆕
+   - 网格搜索优化策略参数
+   - 支持多指标优化 (sharpe, return, drawdown)
 
-5. **主 Pipeline** (`src/pipeline.py`)
-   - 完整流程测试通过 ✅
+5. **可视化模块** (`src/trading/visualize.py`) 🆕
+   - 权益曲线图
+   - 收益率曲线图
+   - 回撤曲线图
+   - 多策略对比图
 
-## 开发中 🚧
-- 多股票组合策略回测
-- 可视化模块
-- 策略参数优化
+6. **风险指标模块** (`src/trading/risk.py`) 🆕
+   - VaR, CVaR
+   - Sortino 比率
+   - Calmar 比率
+   - 盈亏比, 盈利因子
+
+7. **CLI 工具** (`run.py`)
+   - 一键运行回测
+
+8. **文档** (`USAGE.md`)
+
+## 测试结果
+
+### 参数优化 (SMA 策略)
+| 参数组合 | 夏普比率 | 总收益 |
+|----------|----------|--------|
+| fast=30, slow=70 | 1.179 | +58.26% |
+| fast=10, slow=70 | 0.823 | +40.30% |
+| fast=20, slow=50 | 0.650 | +29.70% |
+
+> 注：使用模拟数据测试
 
 ## 待完成
-- [ ] 组合策略回测 (多股票同时运行)
-- [ ] 策略参数优化
-- [ ] 可视化图表
-- [ ] 真实数据获取 (解决 API 限制)
+- [ ] 真实数据获取
 - [ ] 单元测试
+- [ ] Web 界面
+- [ ] 实盘接口
 
 ---
-**状态**: 🟢 开发中
+**状态**: 🟢 MVP 完成，持续开发中

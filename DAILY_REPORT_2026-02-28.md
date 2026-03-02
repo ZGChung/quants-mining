@@ -13,164 +13,116 @@
 | Module / 模块 | Status | Description / 描述 |
 |--------------|--------|-------------------|
 | Data / 数据 | ✅ | Yahoo Finance fetcher, indicators (8+), mock data generator |
-| Strategies / 策略 | ✅ | 11 trading strategies (SMA, RSI, MACD, Bollinger, Momentum, MeanReversion, Breakout, etc.) |
-| Backtesting / 回测 | ✅ | Single stock + portfolio backtesting engine |
+| Strategies / 策略 | ✅ | 11 trading strategies |
+| Backtesting / 回测 | ✅ | Single stock + portfolio backtesting |
 | Optimization / 优化 | ✅ | Grid search parameter optimization |
-| Visualization / 可视化 | ✅ | Equity curve, returns, drawdown charts |
-| Risk Metrics / 风险 | ✅ | VaR, CVaR, Sortino, Calmar, Profit Factor |
-| Heartbeat / 心跳 | ✅ | Health check, auto-optimization trigger |
-| Web UI / Web界面 | ✅ | Streamlit web interface (NEW) |
+| Visualization / 可视化 | ✅ | Charts (equity, returns, drawdown) |
+| Risk Metrics / 风险 | ✅ | VaR, CVaR, Sortino, Calmar, etc. |
+| Heartbeat / 心跳 | ✅ | Health check, auto-optimization |
+| Web UI / Web界面 | ✅ | Streamlit web interface |
+| Scheduler / 调度器 | ✅ | Automated task scheduling |
 
 ### New Additions Today / 今日新增
 
-1. **Web Interface / Web 界面** (`app.py`)
-   - Streamlit-based web application
-   - Interactive strategy backtesting
+1. **Streamlit Web Interface** (`app.py`)
+   - Interactive backtesting UI
    - Parameter optimization UI
    - System health dashboard
+   - Strategy comparison
 
-2. **Heartbeat Mechanism / 心跳机制** (`src/heartbeat.py`)
-   - Automatic health checks
-   - Diagnostic reports
-   - Optimization triggers
+2. **Task Scheduler** (`scheduler.py`)
+   - Automated heartbeat checks
+   - Scheduled optimization runs
+   - Daily backtest automation
+   - Task logging
 
-3. **Advanced Strategies / 高级策略** (6 more)
-   - MeanReversionStrategy
-   - BreakoutStrategy
-   - DualMAStrategy
-   - VolatilityStrategy
-   - CompositeStrategy
-   - TrendFollowingStrategy
+3. **Daily Report** (Bilingual / 中英双语)
+   - Chinese + English
+   - Saved locally
+   - Sent via Telegram
 
 ---
 
 ## 🧪 Testing Results / 测试结果
 
-### Strategy Comparison / 策略对比 (Mock Data)
-
-| Strategy | Return | Sharpe | Max Drawdown |
-|----------|--------|--------|--------------|
-| breakout | +9.0% 🏆 | 0.35 | -14.4% |
-| sma_crossover | -4.9% | -0.19 | -15.2% |
-| mean_reversion | -2.1% | -0.09 | -16.2% |
-| rsi | -7.6% | -0.36 | -16.1% |
+### Daily Backtest / 每日回测
+- **Return:** +5.50%
+- **Sharpe Ratio:** 0.21
 
 ### Parameter Optimization / 参数优化
-
 ```
-Best SMA params: fast=30, slow=70
-- Sharpe Ratio: 1.179 🏆
-- Total Return: +58.26%
+Best: fast=30, slow=70
+- Sharpe: 1.179 🏆
+- Return: +58.26%
 ```
 
-### System Health Check / 系统健康检查
-
+### System Health / 系统状态
 ```
-Status: HEALTHY ✅
+✅ HEALTHY
 - 11 strategies available
-- Backtesting engine OK
-- Optimizer OK
+- All modules working
 ```
 
 ---
 
-## 📁 Files Created / 创建的文件
+## 📁 Project Structure / 项目结构
 
 ```
 quantmining/
-├── app.py                      # Streamlit Web UI
-├── run.py                      # CLI tool
-├── USAGE.md                    # Documentation
+├── app.py                 # Streamlit Web UI
+├── run.py                 # CLI tool
+├── scheduler.py           # Task scheduler
+├── USAGE.md              # Documentation
+├── DAILY_REPORT_*.md     # Daily reports
 ├── src/
-│   ├── heartbeat.py           # Health check
-│   ├── pipeline.py             # Main pipeline
-│   ├── data/
-│   │   ├── fetcher.py         # Data fetching
-│   │   ├── indicators.py      # Technical indicators
-│   │   └── mock.py            # Mock data
-│   └── trading/
-│       ├── strategies/
-│       │   ├── strategy.py    # Base + basic strategies
-│       │   └── advanced.py    # Advanced strategies
-│       ├── backtesting/
-│       │   ├── engine.py      # Single stock backtest
-│       │   └── portfolio_backtest.py  # Portfolio backtest
-│       ├── optimize.py        # Parameter optimization
-│       ├── visualize.py       # Charts
-│       └── risk.py            # Risk metrics
+│   ├── heartbeat.py       # Health checks
+│   ├── pipeline.py        # Main pipeline
+│   ├── data/              # Data modules
+│   └── trading/           # Trading modules
+└── logs/                  # Task logs
 ```
 
 ---
 
-## 🚀 How to Use / 使用方法
+## 🚀 Usage / 使用方法
 
-### Run Web Interface / 运行 Web 界面
 ```bash
-cd quantmining
+# Web 界面
 streamlit run app.py
+
+# 命令行回测
+python run.py --portfolio --tickers AAPL MSFT --strategy rsi --mock
+
+# 定时任务
+python scheduler.py --daemon
+
+# 运行心跳检查
+python scheduler.py --heartbeat
+
+# 运行优化
+python scheduler.py --optimize
 ```
 
-### Run CLI Backtest / 运行命令行回测
-```bash
-python run.py --portfolio --tickers AAPL MSFT GOOGL --strategy rsi --period 2y --mock
-```
+---
 
-### Run Heartbeat Check / 运行心跳检查
-```bash
-python -c "from src.heartbeat import run_heartbeat_check; run_heartbeat_check()"
-```
+## ❓ Questions for Jayson / 需要确认的问题
+
+1. **数据源**: 需要集成 Alpha Vantage 或其他真实数据 API 吗？
+
+2. **目标市场**: 是否需要添加 A 股市场支持？
+
+3. **部署**: 需要将 Web 界面部署到 Streamlit Cloud 吗？
+
+4. **实盘**: 需要添加 Alpaca 或其他券商的模拟交易接口吗？
+
+5. **通知**: 需要添加邮件/Telegram 通知交易信号吗？
 
 ---
 
-## ❓ Questions for Jayson / 需要向 Jayson 确认的问题
+## ✅ Status: Ongoing / 状态：持续开发中
 
-### 1. Data Source / 数据源
-- Should we integrate with a real data provider? (Alpha Vantage, Polygon.io, IEX Cloud)
-- Do you have any API keys already?
-- 是否有已配置的数据源 API？
-
-### 2. Target Market / 目标市场
-- Just US stocks, or include A-share (China) stocks?
-- 是否需要添加 A 股市场支持？
-
-### 3. Deployment / 部署
-- Should we deploy the web app? (Streamlit Cloud, Heroku, local)
-- 需要部署到云端还是本地运行？
-
-### 4. Real Trading / 实盘
-- Should we integrate with a broker for paper trading? (Alpaca, Interactive Brokers)
-- 是否需要添加模拟交易或实盘接口？
-
-### 5. Additional Features / 附加功能
-- Email notifications for trade signals?
-- 需要邮件/短信通知交易信号吗？
+**GitHub:** https://github.com/ZGChung/quants-mining  
+**本地报告:** `/Users/zijiezhong/Desktop/Agents/allen/quantmining/DAILY_REPORT_2026-02-28.md`
 
 ---
-
-## 📈 Development Roadmap / 开发路线图
-
-### Phase 1 - MVP (Current / 当前) ✅
-- [x] Basic data pipeline
-- [x] Multiple strategies
-- [x] Backtesting engine
-- [x] Parameter optimization
-- [x] Web interface
-
-### Phase 2 - Enhancement / 增强
-- [ ] Real data integration
-- [ ] More strategies
-- [ ] Performance improvements
-
-### Phase 3 - Production / 生产
-- [ ] Unit tests
-- [ ] Paper trading integration
-- [ ] Real trading interface
-
----
-
-## ✅ Status: Development Ongoing / 状态：持续开发中
-
-Code pushed to GitHub: https://github.com/ZGChung/quants-mining
-
----
-*Report generated by Allen AI Agent*
+*Generated by Allen AI Agent*

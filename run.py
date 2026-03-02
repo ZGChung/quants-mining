@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-QuantMining CLI - 命令行工具
-快速运行量化交易策略回测
+QuantMining CLI - 更新版
+支持多数据源
 """
 
 import argparse
@@ -10,6 +10,7 @@ from src.pipeline import Pipeline, PipelineConfig
 from src.trading.backtesting.portfolio_backtest import PortfolioBacktester
 from src.data.mock import generate_multiple_stocks
 from src.data import add_indicators
+from src.data.sources import DataSourceFactory
 from src.trading.strategies import create_strategy, STRATEGIES
 
 
@@ -46,9 +47,10 @@ def main():
     )
     
     parser.add_argument(
-        '--mock',
-        action='store_true',
-        help='使用模拟数据'
+        '--source',
+        choices=['mock', 'yahoo', 'alphavantage', 'polygon', 'finnhub'],
+        default='mock',
+        help='数据源'
     )
     
     parser.add_argument(
@@ -86,19 +88,36 @@ def main():
     print(f"Strategy: {args.strategy}")
     print(f"Period: {args.period}")
     print(f"Capital: ${args.capital:,.2f}")
-    print(f"Mode: {'Mock Data' if args.mock else 'Real Data'}")
+    print(f"Data Source: {args.source}")
     print("=" * 60)
+    
+    # 获取数据
+    print(f"\n📥 Fetching data from {args.source}...")
+    
+    if args.source == 'mock':
+        # 使用模拟数据
+        period_days = {"1mo": 30, "3mo": 90, "6mo": 180, "1y": 365, "2y": 730, "5y": 1825}
+        days = period_days.get(args.period, 365)
+        start_date = (pd.Timestamp.now() - pd.Timedelta(days=days)).strftime("%Y-%m-%d")
+        
+        data = generate_multiple_stocks(args.tickers, start_date=start_date)
+    else:
+        # 使用真实数据源
+        source = DataSourceFactory.create(args.source)
+        data = {}
+        for ticker in args.tickers:
+            df = source.fetch(ticker, period=args.period)
+            if not df.empty:
+                data[ticker] = df
+    
+    # 添加技术指标
+    for ticker in data:
+        data[ticker] = add_indicators(data[ticker])
+    
+    print(f"✅ Loaded data for {len(data)} tickers")
     
     if args.portfolio:
         # 组合模式
-        period_days = {"1mo": 30, "3mo": 90, "6mo": 180, "1y": 365, "2y": 730}
-        days = period_days.get(args.period, 365)
-        start_date = f"2024-01-01"
-        
-        data = generate_multiple_stocks(args.tickers, start_date=start_date)
-        for ticker in data:
-            data[ticker] = add_indicators(data[ticker])
-        
         strategy = create_strategy(args.strategy, **strategy_params)
         
         backtester = PortfolioBacktester(
@@ -126,7 +145,7 @@ def main():
             strategy_params=strategy_params,
             initial_capital=args.capital,
             period=args.period,
-            use_mock_data=args.mock,
+            use_mock_data=(args.source == 'mock'),
         )
         
         pipeline = Pipeline(config)
@@ -138,4 +157,5 @@ def main():
 
 
 if __name__ == "__main__":
+    import pandas as pd
     main()

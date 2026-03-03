@@ -31,7 +31,7 @@ st.sidebar.header("⚙️ 配置")
 data_source = st.sidebar.radio("数据源", ["模拟数据", "真实数据"], index=0)
 
 # 股票选择
-default_tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "NFLX", "DIS", "KO"]
+default_tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "NFLX", "DIS", "KO", "JPM", "V", "WMT", "PG", "JNJ"]
 tickers = st.sidebar.multiselect(
     "选择股票",
     default_tickers,
@@ -40,26 +40,33 @@ tickers = st.sidebar.multiselect(
 
 # 策略选择
 strategies = [
-    ("sma_crossover", "均线交叉"),
-    ("rsi", "RSI 超买超卖"),
-    ("macd", "MACD 金叉死叉"),
-    ("bollinger", "布林带"),
-    ("momentum", "动量"),
-    ("mean_reversion", "均值回归"),
-    ("breakout", "突破"),
-    ("composite", "复合策略"),
-    ("trend_following", "趋势跟随"),
-    ("adx", "ADX 趋势"),
-    ("cci", "CCI 商品通道"),
+    ("sma_crossover", "均线交叉", "经典的双均线交叉策略"),
+    ("rsi", "RSI 超买超卖", "基于相对强弱指数"),
+    ("macd", "MACD 金叉死叉", "移动平均收敛发散"),
+    ("bollinger", "布林带", "价格波动通道"),
+    ("momentum", "动量", "基于价格动量"),
+    ("mean_reversion", "均值回归", "价格回归均值"),
+    ("breakout", "突破", "价格突破策略"),
+    ("composite", "复合策略", "多指标组合"),
+    ("trend_following", "趋势跟随", "顺势交易"),
+    ("adx", "ADX 趋势", "平均趋向指数"),
+    ("cci", "CCI 商品通道", "商品通道指数"),
+    ("vwap", "VWAP 成交量加权", "成交价加权平均"),
+    ("stochastic", "随机指标", "KDJ 随机指标"),
 ]
 strategy_names = [s[0] for s in strategies]
-strategy_labels = [f"{s[0]} - {s[1]}" for s in strategies]
+strategy_descs = {s[0]: s[2] for s in strategies}
 
-strategy_option = st.sidebar.selectbox("选择策略", range(len(strategy_labels)), format_func=lambda x: strategy_labels[x])
-strategy = strategy_names[strategy_option]
+strategy_option = st.sidebar.selectbox(
+    "选择策略",
+    range(len(strategies)),
+    format_func=lambda x: f"{strategies[x][0]} - {strategies[x][1]}"
+)
+strategy = strategies[strategy_option][0]
 
 # 策略参数
 st.sidebar.subheader("📌 策略参数")
+st.sidebar.caption(f"📝 {strategy_descs[strategy]}")
 strategy_params = {}
 
 if strategy == "sma_crossover":
@@ -93,6 +100,11 @@ elif strategy == "adx":
     strategy_params["adx_threshold"] = st.sidebar.slider("ADX 阈值", 15, 40, 25)
 elif strategy == "cci":
     strategy_params["period"] = st.sidebar.slider("CCI 周期", 10, 30, 20)
+elif strategy == "vwap":
+    strategy_params["deviation_threshold"] = st.sidebar.slider("偏离阈值", 0.01, 0.05, 0.02)
+elif strategy == "stochastic":
+    strategy_params["k_period"] = st.sidebar.slider("K周期", 5, 21, 14)
+    strategy_params["d_period"] = st.sidebar.slider("D周期", 3, 7, 3)
 
 # 回测参数
 st.sidebar.subheader("📊 回测参数")
@@ -112,13 +124,11 @@ with tab1:
         else:
             with st.spinner("运行回测中..."):
                 try:
-                    # 导入模块
                     from src.data.mock import generate_multiple_stocks
                     from src.data import add_indicators
                     from src.trading.strategies import create_strategy
                     from src.trading.backtesting import PortfolioBacktester
                     
-                    # 准备数据
                     period_days = {"1mo": 30, "3mo": 90, "6mo": 180, "1y": 365, "2y": 730}
                     start_date = (datetime.now() - timedelta(days=period_days.get(period, 365))).strftime("%Y-%m-%d")
                     
@@ -126,7 +136,6 @@ with tab1:
                     for ticker in data:
                         data[ticker] = add_indicators(data[ticker])
                     
-                    # 运行回测
                     strat = create_strategy(strategy, **strategy_params)
                     backtester = PortfolioBacktester(
                         initial_capital=initial_capital,
@@ -135,7 +144,6 @@ with tab1:
                     )
                     result = backtester.run(data, strat)
                     
-                    # 显示结果
                     st.success("✅ 回测完成!")
                     
                     # 指标卡片
@@ -150,18 +158,25 @@ with tab1:
                     equity_df = result['equity_curve']
                     if not equity_df.empty:
                         chart_data = pd.DataFrame({
-                            '权益': equity_df['equity'],
-                            '现金': equity_df.get('cash', 0),
-                            '持仓': equity_df.get('positions_value', 0)
+                            '总权益': equity_df['equity'],
+                            '现金': equity_df.get('cash', equity_df['equity'] * 0.5),
+                            '持仓市值': equity_df.get('positions_value', equity_df['equity'] * 0.5)
                         })
                         st.line_chart(chart_data)
                     
                     # 收益率曲线
-                    st.subheader("📊 收益率")
+                    st.subheader("📊 收益率曲线")
                     if not equity_df.empty:
                         returns = equity_df['equity'].pct_change().fillna(0)
                         cum_returns = (1 + returns).cumprod() - 1
                         st.line_chart(cum_returns * 100)
+                    
+                    # 回撤曲线
+                    st.subheader("📉 回撤曲线")
+                    if not equity_df.empty:
+                        cummax = equity_df['equity'].cummax()
+                        drawdown = (equity_df['equity'] - cummax) / cummax * 100
+                        st.area_chart(drawdown, color="#FF4B4B")
                     
                     # 交易统计
                     st.subheader("📋 交易统计")
@@ -169,7 +184,7 @@ with tab1:
                     col1.metric("交易次数", result['total_trades'])
                     col2.metric("买入次数", result['total_buys'])
                     col3.metric("卖出次数", result['total_sells'])
-                    col4.metric("持仓数", len(result['equity_curve'].get('num_positions', [0])))
+                    col4.metric("胜率", f"{result['total_trades'] > 0 and result['total_buys']/result['total_trades']*100 or 0:.1f}%")
                     
                 except Exception as e:
                     st.error(f"回测失败: {str(e)}")
@@ -183,18 +198,16 @@ with tab2:
     opt_strategy = st.selectbox("选择要优化的策略", strategy_names, format_func=lambda x: x)
     
     if st.button("⚡ 开始优化", type="primary"):
-        with st.spinner("优化中，请稍候... 这可能需要几分钟"):
+        with st.spinner("优化中，请稍候..."):
             try:
                 from src.trading.optimize import StrategyOptimizer
                 from src.data.mock import generate_multiple_stocks
                 from src.data import add_indicators
                 
-                # 准备数据
                 data = generate_multiple_stocks(tickers[:3], start_date="2024-01-01")
                 for ticker in data:
                     data[ticker] = add_indicators(data[ticker])
                 
-                # 参数网格
                 if opt_strategy == "sma_crossover":
                     param_grid = {
                         'fast_period': [5, 10, 15, 20, 25, 30],
@@ -220,18 +233,14 @@ with tab2:
                 
                 st.success("🎉 优化完成!")
                 
-                # 显示最佳参数
-                st.subheader("🏆 最佳参数")
                 col1, col2, col3 = st.columns(3)
                 col1.metric("夏普比率", f"{opt_result.best_sharpe:.3f}")
                 col2.metric("总收益", f"{opt_result.best_return:.2%}")
                 col3.json(opt_result.best_params)
                 
-                # 显示 Top 10
                 st.subheader("📊 Top 10 结果")
                 results_df = pd.DataFrame(opt_result.all_results[:10])
                 if not results_df.empty:
-                    # 格式化显示
                     display_df = results_df.copy()
                     display_df['total_return'] = display_df['total_return'].apply(lambda x: f"{x:.2%}")
                     display_df['sharpe_ratio'] = display_df['sharpe_ratio'].apply(lambda x: f"{x:.3f}")
@@ -259,7 +268,6 @@ with tab3:
                 from src.trading.strategies import create_strategy
                 from src.trading.backtesting import PortfolioBacktester
                 
-                # 准备数据
                 period_days = {"1mo": 30, "3mo": 90, "6mo": 180, "1y": 365, "2y": 730}
                 start_date = (datetime.now() - timedelta(days=period_days.get(period, 365))).strftime("%Y-%m-%d")
                 
@@ -278,7 +286,6 @@ with tab3:
                     result = backtester.run(data, strat)
                     results[strat_name] = result
                 
-                # 对比表格
                 st.subheader("📊 策略对比结果")
                 
                 comparison_data = []
@@ -295,11 +302,9 @@ with tab3:
                 comparison_df = pd.DataFrame(comparison_data)
                 st.dataframe(comparison_df, use_container_width=True, hide_index=True)
                 
-                # 找出最佳
                 best = max(results.items(), key=lambda x: x[1]['sharpe_ratio'])
                 st.success(f"🏆 最佳策略: {best[0]} (夏普比率: {best[1]['sharpe_ratio']:.2f})")
                 
-                # 权益曲线对比
                 st.subheader("📈 权益曲线对比")
                 equity_lines = {}
                 for name, result in results.items():
@@ -320,11 +325,10 @@ with tab4:
     量化交易策略研究平台
     
     ### ✨ 功能
-    - 📊 **多策略回测** - 支持 11+ 种策略
+    - 📊 **多策略回测** - 支持 13+ 种策略
     - 📈 **参数优化** - 自动搜索最优参数
     - 📉 **多策略对比** - 同时比较多个策略
     - 🔄 **多数据源** - 支持 Yahoo, Alpha Vantage 等
-    - 💰 **纸交易** - 模拟实盘交易
     
     ### 📋 可用策略
     | 策略 | 描述 |
@@ -336,18 +340,16 @@ with tab4:
     | momentum | 动量 |
     | mean_reversion | 均值回归 |
     | breakout | 突破 |
-    | composite | 复合 |
+    | composite | 复合策略 |
     | trend_following | 趋势跟随 |
     | adx | ADX 趋势 |
     | cci | CCI 商品通道 |
+    | vwap | VWAP 成交量加权 |
+    | stochastic | 随机指标 |
     
     ### 🚀 快速开始
     ```bash
-    # 本地运行
     streamlit run app.py
-    
-    # 或使用 CLI
-    python run.py --portfolio --tickers AAPL MSFT --strategy rsi --mock
     ```
     
     ### 📊 在线访问
@@ -357,7 +359,7 @@ with tab4:
     st.divider()
     st.caption("🎉 Made with ❤️ by Allen AI Agent")
     
-    # 显示系统信息
     st.sidebar.divider()
-    st.sidebar.caption("📊 QuantMining v1.0")
-    st.sidebar.caption("数据源: 模拟数据 (测试)")
+    st.sidebar.caption("📊 QuantMining v1.1")
+    st.sidebar.caption(f"选择股票: {len(tickers)} 只")
+    st.sidebar.caption(f"策略: {strategy}")

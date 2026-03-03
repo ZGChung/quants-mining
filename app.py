@@ -240,5 +240,4 @@ with tab3:
     st.divider()
     st.caption("Made with ❤️ by Allen AI Agent")
 
-if __name__ == "__main__":
-    st.run()
+# Streamlit automatically runs the app when executed via `streamlit run app.py`

@@ -6,6 +6,11 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import sys
+import os
+
+# Add src to path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
 st.set_page_config(page_title="QuantMining", page_icon="📈", layout="wide")
 st.title("📈 QuantMining")
@@ -51,10 +56,10 @@ with tab1:
             with st.spinner("Running..."):
                 try:
                     # Imports
-                    from src.data.mock import generate_multiple_stocks
-                    from src.data.indicators import add_indicators
-                    from src.trading.strategies import create_strategy
-                    from src.trading.backtesting import PortfolioBacktester
+                    from data.mock import generate_multiple_stocks
+                    from data.indicators import add_indicators
+                    from trading.strategies import create_strategy
+                    from trading.backtesting import PortfolioBacktester
                     
                     # Data
                     days_map = {"3mo": 90, "6mo": 180, "1y": 365, "2y": 730}

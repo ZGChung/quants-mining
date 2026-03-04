@@ -15,8 +15,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 st.set_page_config(
     page_title="QuantMining Pro",
     page_icon="📈",
-    layout="wide",
-    page_pro_icon="📈"
+    layout="wide"
 )
 
 st.title("📈 QuantMining Pro")

@@ -8,29 +8,41 @@ import numpy as np
 from datetime import datetime, timedelta
 import sys
 import os
-import importlib.util
 
 st.set_page_config(page_title="QuantMining", page_icon="📈", layout="wide")
 st.title("📈 QuantMining")
 
-# Find src directory
-def find_src():
-    candidates = [
-        os.path.join(os.path.dirname(__file__), 'src'),
-        os.path.join(os.getcwd(), 'src'),
-        'src',
-    ]
-    for c in candidates:
-        if os.path.exists(os.path.join(c, 'data', 'mock.py')):
-            return c
+# CRITICAL: Find src and add to path BEFORE any imports
+def setup_path():
+    # Try to find src directory that contains data/ and trading/
+    for base in [os.path.dirname(__file__), os.getcwd()]:
+        for src in [os.path.join(base, 'src'), base]:
+            data_path = os.path.join(src, 'data', '__init__.py')
+            trading_path = os.path.join(src, 'trading', '__init__.py')
+            if os.path.exists(data_path) and os.path.exists(trading_path):
+                if src not in sys.path:
+                    sys.path.insert(0, src)
+                return src
     return None
 
-src_dir = find_src()
-if src_dir:
-    if src_dir not in sys.path:
-        sys.path.insert(0, src_dir)
-else:
-    st.error(f"Cannot find src directory. Candidates checked.")
+src_dir = setup_path()
+
+if not src_dir:
+    st.error("Cannot find src directory with data/ and trading/ modules")
+    st.stop()
+
+# Now do imports AFTER path is set
+try:
+    from data.mock import generate_multiple_stocks
+    from data.indicators import add_indicators
+    from trading.strategies import create_strategy
+    from trading.backtesting import PortfolioBacktester
+    IMPORTS_OK = True
+except Exception as e:
+    IMPORTS_OK = False
+    st.error(f"Import failed: {e}")
+    st.write(f"src_dir: {src_dir}")
+    st.write(f"sys.path: {sys.path[:3]}")
 
 # Stock pools
 STOCK_POOLS = {
@@ -64,26 +76,14 @@ tab1, tab2, tab3, tab4 = st.tabs(["📊 Backtest", "📈 Optimize", "📉 Compar
 with tab1:
     st.header("Strategy Backtest")
     
-    if st.button("🚀 Run Backtest", type="primary", use_container_width=True):
+    if not IMPORTS_OK:
+        st.error("⚠️ Imports not ready. Please check configuration.")
+    elif st.button("🚀 Run Backtest", type="primary", use_container_width=True):
         if not tickers:
             st.error("Please select stocks")
         else:
             with st.spinner("Running backtest..."):
                 try:
-                    # Try multiple import approaches
-                    try:
-                        from data.mock import generate_multiple_stocks
-                    except:
-                        # Fallback: load module directly
-                        spec = importlib.util.spec_from_file_location("mock", os.path.join(src_dir, "data", "mock.py"))
-                        mock_module = importlib.util.module_from_spec(spec)
-                        spec.loader.exec_module(mock_module)
-                        generate_multiple_stocks = mock_module.generate_multiple_stocks
-                    
-                    from data.indicators import add_indicators
-                    from trading.strategies import create_strategy
-                    from trading.backtesting import PortfolioBacktester
-                    
                     days_map = {"3mo": 90, "6mo": 180, "1y": 365, "2y": 730}
                     days = days_map.get(period, 365)
                     start_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
@@ -109,7 +109,8 @@ with tab1:
                     
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)}")
-                    st.write(f"src_dir: {src_dir}")
+                    import traceback
+                    st.code(traceback.format_exc())
 
 with tab2:
     st.header("Parameter Optimization")

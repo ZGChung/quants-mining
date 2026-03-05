@@ -5,15 +5,35 @@ QuantMining - Streamlit App
 import sys
 import os
 
+# DEBUG: Print what we detect
+print("DEBUG: __file__ =", __file__ if '__file__' in dir() else "N/A")
+print("DEBUG: cwd =", os.getcwd())
+
 # CRITICAL: Setup path BEFORE importing streamlit
 def setup_path():
-    for base in [os.path.dirname(__file__), os.getcwd()]:
-        for src in [os.path.join(base, 'src'), base]:
-            if os.path.exists(os.path.join(src, 'data', '__init__.py')) and \
-               os.path.exists(os.path.join(src, 'trading', '__init__.py')):
-                if src not in sys.path:
-                    sys.path.insert(0, src)
-                return src
+    # Collect all candidates
+    candidates = []
+    if '__file__' in dir():
+        candidates.append(os.path.dirname(os.path.abspath(__file__)))
+    candidates.append(os.getcwd())
+    candidates.append("/mount/src/quants-mining")
+    candidates.append("/mount/src")
+    
+    # Also check parent dirs
+    for c in list(candidates):
+        candidates.append(os.path.dirname(c))
+        candidates.append(os.path.join(c, 'src'))
+    
+    for src in candidates:
+        data_init = os.path.join(src, 'data', '__init__.py')
+        trading_init = os.path.join(src, 'trading', '__init__.py')
+        if os.path.exists(data_init) and os.path.exists(trading_init):
+            if src not in sys.path:
+                sys.path.insert(0, src)
+            print(f"DEBUG: Found src at {src}")
+            return src
+    
+    print(f"DEBUG: Candidates checked: {candidates[:5]}")
     return None
 
 src_dir = setup_path()
@@ -29,6 +49,8 @@ st.title("📈 QuantMining")
 
 if not src_dir:
     st.error("Cannot find src directory")
+    st.info(f"CWD: {os.getcwd()}")
+    st.info(f"Files: {os.listdir('.') if os.path.exists('.') else 'N/A'}")
     st.stop()
 
 # Import after path is set
@@ -38,10 +60,10 @@ try:
     from trading.strategies import create_strategy
     from trading.backtesting import PortfolioBacktester
     IMPORTS_OK = True
+    st.success(f"✅ Imports OK! src={src_dir}")
 except Exception as e:
     IMPORTS_OK = False
     st.error(f"Import failed: {e}")
-    st.write(f"src: {src_dir}")
 
 STOCK_POOLS = {
     "Tech": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "AMD"],
@@ -73,7 +95,7 @@ with tab1:
     st.header("Strategy Backtest")
     
     if not IMPORTS_OK:
-        st.error("⚠️ Import error - check configuration")
+        st.error("⚠️ Import error")
     elif st.button("🚀 Run Backtest", type="primary", use_container_width=True):
         if not tickers:
             st.error("Please select stocks")

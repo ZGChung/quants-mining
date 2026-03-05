@@ -2,24 +2,15 @@
 QuantMining - Streamlit App
 """
 
-import streamlit as st
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
 import sys
 import os
 
-st.set_page_config(page_title="QuantMining", page_icon="📈", layout="wide")
-st.title("📈 QuantMining")
-
-# CRITICAL: Find src and add to path BEFORE any imports
+# CRITICAL: Setup path BEFORE importing streamlit
 def setup_path():
-    # Try to find src directory that contains data/ and trading/
     for base in [os.path.dirname(__file__), os.getcwd()]:
         for src in [os.path.join(base, 'src'), base]:
-            data_path = os.path.join(src, 'data', '__init__.py')
-            trading_path = os.path.join(src, 'trading', '__init__.py')
-            if os.path.exists(data_path) and os.path.exists(trading_path):
+            if os.path.exists(os.path.join(src, 'data', '__init__.py')) and \
+               os.path.exists(os.path.join(src, 'trading', '__init__.py')):
                 if src not in sys.path:
                     sys.path.insert(0, src)
                 return src
@@ -27,11 +18,20 @@ def setup_path():
 
 src_dir = setup_path()
 
+# Now import everything else
+import streamlit as st
+import pandas as pd
+import numpy as np
+from datetime import datetime, timedelta
+
+st.set_page_config(page_title="QuantMining", page_icon="📈", layout="wide")
+st.title("📈 QuantMining")
+
 if not src_dir:
-    st.error("Cannot find src directory with data/ and trading/ modules")
+    st.error("Cannot find src directory")
     st.stop()
 
-# Now do imports AFTER path is set
+# Import after path is set
 try:
     from data.mock import generate_multiple_stocks
     from data.indicators import add_indicators
@@ -41,17 +41,14 @@ try:
 except Exception as e:
     IMPORTS_OK = False
     st.error(f"Import failed: {e}")
-    st.write(f"src_dir: {src_dir}")
-    st.write(f"sys.path: {sys.path[:3]}")
+    st.write(f"src: {src_dir}")
 
-# Stock pools
 STOCK_POOLS = {
     "Tech": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "AMD"],
     "Finance": ["JPM", "BAC", "GS", "MS", "C", "WFC"],
     "Consumer": ["AMZN", "TSLA", "KO", "PEP", "PG", "WMT"],
 }
 
-# Sidebar
 with st.sidebar:
     st.header("Settings")
     pool = st.selectbox("Stock Pool", list(STOCK_POOLS.keys()))
@@ -70,14 +67,13 @@ with st.sidebar:
     max_pos = st.slider("Max Positions", 1, 10, 3)
     period = st.select_slider("Period", ["3mo", "6mo", "1y", "2y"])
 
-# Main tabs
 tab1, tab2, tab3, tab4 = st.tabs(["📊 Backtest", "📈 Optimize", "📉 Compare", "ℹ️ About"])
 
 with tab1:
     st.header("Strategy Backtest")
     
     if not IMPORTS_OK:
-        st.error("⚠️ Imports not ready. Please check configuration.")
+        st.error("⚠️ Import error - check configuration")
     elif st.button("🚀 Run Backtest", type="primary", use_container_width=True):
         if not tickers:
             st.error("Please select stocks")

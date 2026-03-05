@@ -34,12 +34,19 @@ if not src_dir:
 try:
     from data.mock import generate_multiple_stocks
     from data.indicators import add_indicators
+    from data.real import DataFetcher, set_api_keys
     from trading.strategies import create_strategy
     from trading.backtesting import PortfolioBacktester
     IMPORTS_OK = True
 except Exception as e:
     IMPORTS_OK = False
     st.error(f"Import failed: {e}")
+
+# Initialize data fetcher
+data_fetcher = DataFetcher()
+
+# API Keys (from Streamlit secrets or user input)
+API_KEYS = {}
 
 # Stock pools
 STOCK_POOLS = {
@@ -59,9 +66,35 @@ ALL_STRATEGIES = [
     ("breakout", "Breakout", "Channel breakout"),
 ]
 
+# Data sources info
+DATA_SOURCES = {
+    "yahoo": {"name": "Yahoo Finance", "free": True, "key_required": False},
+    "alpha_vantage": {"name": "Alpha Vantage", "free": True, "key_required": True},
+    "finnhub": {"name": "Finnhub", "free": True, "key_required": True},
+}
+
 # Sidebar
 with st.sidebar:
     st.header("⚙️ Settings")
+    
+    # API Keys expander
+    with st.expander("🔑 API Keys"):
+        st.info("Get free API keys for higher rate limits")
+        
+        alpha_key = st.text_input("Alpha Vantage Key", type="password", 
+                                  help="Get free key at alphavantage.co")
+        finnhub_key = st.text_input("Finnhub Key", type="password",
+                                   help="Get free key at finnhub.io")
+        
+        if alpha_key:
+            API_KEYS['alpha_vantage'] = alpha_key
+            set_api_keys(API_KEYS)
+            st.success("✅ Alpha Vantage key set")
+        if finnhub_key:
+            API_KEYS['finnhub'] = finnhub_key
+            set_api_keys(API_KEYS)
+            st.success("✅ Finnhub key set")
+    
     pool = st.selectbox("Stock Pool", list(STOCK_POOLS.keys()))
     tickers = st.multiselect("Stocks", STOCK_POOLS[pool], default=STOCK_POOLS[pool][:3])
     
@@ -98,6 +131,14 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs(["📊 Backtest", "📈 Optimize", "📉 
 with tab1:
     st.header("Strategy Backtest")
     
+    # Data source selection
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        use_real_data = st.checkbox("Use Real Data (Yahoo)", value=False)
+    with col2:
+        if use_real_data:
+            st.caption("📡 Yahoo Finance")
+    
     if not IMPORTS_OK:
         st.error("⚠️ Import error")
     elif st.button("🚀 Run Backtest", type="primary", use_container_width=True):
@@ -110,35 +151,45 @@ with tab1:
                     days = days_map.get(period, 365)
                     start_date = (datetime.now() - timedelta(days=days)).strftime("%Y-%m-%d")
                     
-                    data = generate_multiple_stocks(tickers, start_date=start_date)
-                    for ticker in data:
-                        data[ticker] = add_indicators(data[ticker])
+                    # Get data
+                    if use_real_data:
+                        data = data_fetcher.fetch_all(tickers, period)
+                        st.info(f"📡 Using real data from Yahoo Finance")
+                    else:
+                        data = generate_multiple_stocks(tickers, start_date=start_date)
+                        st.info(f"🎲 Using mock data")
                     
-                    strat = create_strategy(strategy, **params)
-                    bt = PortfolioBacktester(capital, max_pos, 1.0/max_pos)
-                    result = bt.run(data, strat)
-                    
-                    st.success("✅ Backtest Complete!")
-                    
-                    # Metrics
-                    c1, c2, c3, c4 = st.columns(4)
-                    c1.metric("Total Return", f"{result['total_return']:.2%}")
-                    c2.metric("Annual Return", f"{result['annual_return']:.2%}")
-                    c3.metric("Sharpe Ratio", f"{result['sharpe_ratio']:.2f}")
-                    c4.metric("Max Drawdown", f"{result['max_drawdown']:.2%}")
-                    
-                    # Equity curve
-                    if not result['equity_curve'].empty:
-                        st.subheader("📈 Equity Curve")
-                        st.line_chart(result['equity_curve']['equity'])
-                    
-                    # Trade stats
-                    s1, s2, s3, s4 = st.columns(4)
-                    s1.metric("Total Trades", result.get('total_trades', 0))
-                    s2.metric("Win Rate", f"{result.get('win_rate', 0):.1%}")
-                    s3.metric("Avg Win", f"${result.get('avg_win', 0):.2f}")
-                    s4.metric("Avg Loss", f"${result.get('avg_loss', 0):.2f}")
-                    
+                    if not data:
+                        st.error("Failed to fetch data")
+                    else:
+                        for ticker in data:
+                            data[ticker] = add_indicators(data[ticker])
+                        
+                        strat = create_strategy(strategy, **params)
+                        bt = PortfolioBacktester(capital, max_pos, 1.0/max_pos)
+                        result = bt.run(data, strat)
+                        
+                        st.success("✅ Backtest Complete!")
+                        
+                        # Metrics
+                        c1, c2, c3, c4 = st.columns(4)
+                        c1.metric("Total Return", f"{result['total_return']:.2%}")
+                        c2.metric("Annual Return", f"{result['annual_return']:.2%}")
+                        c3.metric("Sharpe Ratio", f"{result['sharpe_ratio']:.2f}")
+                        c4.metric("Max Drawdown", f"{result['max_drawdown']:.2%}")
+                        
+                        # Equity curve
+                        if not result['equity_curve'].empty:
+                            st.subheader("📈 Equity Curve")
+                            st.line_chart(result['equity_curve']['equity'])
+                        
+                        # Trade stats
+                        s1, s2, s3, s4 = st.columns(4)
+                        s1.metric("Total Trades", result.get('total_trades', 0))
+                        s2.metric("Win Rate", f"{result.get('win_rate', 0):.1%}")
+                        s3.metric("Avg Win", f"${result.get('avg_win', 0):.2f}")
+                        s4.metric("Avg Loss", f"${result.get('avg_loss', 0):.2f}")
+                        
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)}")
                     import traceback
@@ -253,42 +304,98 @@ with tab3:
 # ============== REAL DATA TAB ==============
 with tab4:
     st.header("Real Market Data")
-    st.info("📡 Fetch real-time data from Yahoo Finance")
+    st.info("📡 Fetch real-time data from multiple sources")
     
+    # Source selection
+    st.subheader("📡 Data Source")
+    source_col1, source_col2 = st.columns(2)
+    
+    with source_col1:
+        data_source = st.selectbox("Select Source", ["yahoo", "alpha_vantage", "finnhub"],
+                                  format_func=lambda x: f"{DATA_SOURCES[x]['name']} {'🔑' if DATA_SOURCES[x]['key_required'] else '✅'}")
+    
+    with source_col2:
+        if data_source == "yahoo":
+            st.success("✅ Free, no key required")
+        else:
+            st.warning(f"🔑 API key required")
+            st.caption(f"Rate limit: {DATA_SOURCES[data_source]['rate_limit']}")
+    
+    # Ticker input
     col1, col2 = st.columns(2)
     
     with col1:
         realtime_ticker = st.text_input("Ticker Symbol", "AAPL").upper()
     
     with col2:
-        realtime_period = st.selectbox("Period", ["1mo", "3mo", "6mo", "1y", "2y"])
+        realtime_period = st.selectbox("Period", ["1mo", "3mo", "6mo", "1y", "2y"], index=3)
     
-    if st.button("📥 Fetch Data", type="primary"):
+    # Quote section
+    st.subheader("💰 Quote")
+    if st.button("📥 Get Quote", type="secondary"):
+        with st.spinner("Fetching quote..."):
+            try:
+                quote = data_fetcher.get_quote(realtime_ticker)
+                
+                if 'error' not in quote:
+                    q1, q2, q3, q4 = st.columns(4)
+                    q1.metric("Price", f"${quote.get('price', 0):.2f}")
+                    q2.metric("Change", f"${quote.get('change', 0):.2f}")
+                    q3.metric("Change %", f"{quote.get('change_pct', 0):.2f}%")
+                    q4.metric("Volume", f"{quote.get('volume', 0):,.0f}")
+                else:
+                    st.error("Failed to get quote")
+                    
+            except Exception as e:
+                st.error(f"Error: {e}")
+    
+    # Historical data
+    st.subheader("📊 Historical Data")
+    if st.button("📥 Fetch Historical Data", type="primary"):
         with st.spinner("Fetching..."):
             try:
-                from data.real import get_real_data
+                df = data_fetcher.fetch(realtime_ticker, realtime_period, data_source)
                 
-                data = get_real_data([realtime_ticker], realtime_period)
-                
-                if realtime_ticker in data:
-                    df = data[realtime_ticker]
+                if df is not None and not df.empty:
                     st.success(f"✅ Got {len(df)} rows for {realtime_ticker}")
                     
                     # Price chart
                     st.subheader(f"📈 {realtime_ticker} Price")
-                    st.line_chart(df['Close'])
+                    
+                    # Chart type
+                    chart_type = st.radio("Chart Type", ["Line", "Candlestick"], horizontal=True)
+                    
+                    if chart_type == "Line":
+                        st.line_chart(df['Close'])
+                    else:
+                        # Simple OHLC chart
+                        ohlc = df[['Open', 'High', 'Low', 'Close']].tail(60)
+                        st.line_chart(ohlc)
                     
                     # Data preview
                     with st.expander("Raw Data"):
                         st.dataframe(df.tail(20))
                         
+                    # Download
+                    csv = df.to_csv()
+                    st.download_button("📥 Download CSV", csv, f"{realtime_ticker}.csv", "text/csv")
+                    
                 else:
-                    st.error("Failed to fetch data")
+                    st.error("Failed to fetch data. Check API key or ticker symbol.")
                     
             except Exception as e:
                 st.error(f"Error: {e}")
                 import traceback
                 st.code(traceback.format_exc())
+    
+    # Market status
+    st.subheader("🏛️ Market Status")
+    status = data_fetcher.get_market_status()
+    if status['open']:
+        st.success(f"🟢 Market Open - {status['time']}")
+    else:
+        st.warning(f"🔴 Market Closed - {status['time']}")
+        st.caption(f"Next open: {status['next_open']}")
 
 # ============== ABOUT TAB ==============
 with tab5:
@@ -303,7 +410,14 @@ with tab5:
     - 📊 **Strategy Backtesting** - Test your trading strategies
     - 📈 **Parameter Optimization** - Find optimal parameters
     - 📉 **Multi-Strategy Comparison** - Compare different approaches
-    - 📡 **Real-time Data** - Fetch live market data
+    - 📡 **Real-time Data** - Fetch live market data from multiple sources
+    
+    ### Data Sources
+    | Source | Free | API Key Required | Rate Limit |
+    |--------|------|-------------------|------------|
+    | Yahoo Finance | ✅ | No | ~2000/day |
+    | Alpha Vantage | ✅ | Yes | 25/day |
+    | Finnhub | ✅ | Yes | 60/min |
     
     ### Supported Strategies
     | Strategy | Description |
@@ -315,6 +429,10 @@ with tab5:
     | momentum | Price Momentum |
     | mean_reversion | Mean Reversion |
     | breakout | Channel Breakout |
+    
+    ### How to Get API Keys
+    - **Alpha Vantage**: [alphavantage.co](https://www.alphavantage.co/support/#api-key)
+    - **Finnhub**: [finnhub.io](https://finnhub.io/register)
     
     ### Links
     - 🌐 **App**: https://quants-mining.streamlit.app

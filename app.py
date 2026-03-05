@@ -8,33 +8,31 @@ import numpy as np
 from datetime import datetime, timedelta
 import sys
 import os
-
-# Try multiple ways to find src directory
-possible_paths = [
-    os.path.join(os.path.dirname(os.path.abspath(__file__)),  # Same dir as app.py
-    os.path.join(os.getcwd(), 'src'),  # Current working dir
-    'src',  # Relative
-]
-
-# Add all possible paths
-for p in possible_paths:
-    if p not in sys.path:
-        sys.path.insert(0, p)
+import importlib.util
 
 st.set_page_config(page_title="QuantMining", page_icon="📈", layout="wide")
 st.title("📈 QuantMining")
 
-# Check what's available
-import_test = None
-for p in ['data', 'data.mock']:
-    try:
-        __import__(p)
-        import_test = p
-        break
-    except:
-        pass
+# Find src directory
+def find_src():
+    candidates = [
+        os.path.join(os.path.dirname(__file__), 'src'),
+        os.path.join(os.getcwd(), 'src'),
+        'src',
+    ]
+    for c in candidates:
+        if os.path.exists(os.path.join(c, 'data', 'mock.py')):
+            return c
+    return None
 
-# Preset stock pools
+src_dir = find_src()
+if src_dir:
+    if src_dir not in sys.path:
+        sys.path.insert(0, src_dir)
+else:
+    st.error(f"Cannot find src directory. Candidates checked.")
+
+# Stock pools
 STOCK_POOLS = {
     "Tech": ["AAPL", "MSFT", "GOOGL", "META", "NVDA", "AMD"],
     "Finance": ["JPM", "BAC", "GS", "MS", "C", "WFC"],
@@ -44,7 +42,6 @@ STOCK_POOLS = {
 # Sidebar
 with st.sidebar:
     st.header("Settings")
-    
     pool = st.selectbox("Stock Pool", list(STOCK_POOLS.keys()))
     tickers = st.multiselect("Stocks", STOCK_POOLS[pool], default=STOCK_POOLS[pool][:3])
     
@@ -55,8 +52,6 @@ with st.sidebar:
     if strategy == "sma_crossover":
         params["fast_period"] = st.slider("Fast MA", 5, 50, 20)
         params["slow_period"] = st.slider("Slow MA", 20, 200, 50)
-    elif strategy == "rsi":
-        params["period"] = st.slider("Period", 5, 30, 14)
     
     st.subheader("Backtest")
     capital = st.number_input("Capital", value=100000)
@@ -75,7 +70,16 @@ with tab1:
         else:
             with st.spinner("Running backtest..."):
                 try:
-                    from data.mock import generate_multiple_stocks
+                    # Try multiple import approaches
+                    try:
+                        from data.mock import generate_multiple_stocks
+                    except:
+                        # Fallback: load module directly
+                        spec = importlib.util.spec_from_file_location("mock", os.path.join(src_dir, "data", "mock.py"))
+                        mock_module = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(mock_module)
+                        generate_multiple_stocks = mock_module.generate_multiple_stocks
+                    
                     from data.indicators import add_indicators
                     from trading.strategies import create_strategy
                     from trading.backtesting import PortfolioBacktester
@@ -105,6 +109,7 @@ with tab1:
                     
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)}")
+                    st.write(f"src_dir: {src_dir}")
 
 with tab2:
     st.header("Parameter Optimization")
@@ -116,9 +121,5 @@ with tab3:
 
 with tab4:
     st.header("About")
-    st.markdown("""
-    ## 📈 QuantMining
-    
-    **https://quants-mining.streamlit.app**
-    """)
+    st.markdown("**https://quants-mining.streamlit.app**")
     st.caption("Made with ❤️ by Allen AI")

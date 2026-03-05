@@ -9,13 +9,26 @@ from datetime import datetime, timedelta
 import sys
 import os
 
-# Add src to path
-app_dir = os.path.dirname(os.path.abspath(__file__))
-src_path = os.path.join(app_dir, 'src')
-sys.path.insert(0, src_path)
+# Get the directory where app.py is located
+if '__file__' in globals():
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+else:
+    app_dir = os.getcwd()
+
+# Add src directory to path
+src_dir = os.path.join(app_dir, 'src')
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
 
 st.set_page_config(page_title="QuantMining", page_icon="📈", layout="wide")
 st.title("📈 QuantMining")
+
+# Verify path
+with st.expander("Debug Info"):
+    st.write(f"App dir: {app_dir}")
+    st.write(f"src dir: {src_dir}")
+    st.write(f"sys.path: {sys.path[:3]}")
+    st.write(f"Files in src: {os.listdir(src_dir) if os.path.exists(src_dir) else 'NOT FOUND'}")
 
 # Preset stock pools
 STOCK_POOLS = {
@@ -61,7 +74,10 @@ with tab1:
         else:
             with st.spinner("Running backtest..."):
                 try:
-                    # Test imports first
+                    # Debug
+                    st.write(f"Importing from: {src_dir}")
+                    
+                    # Try imports
                     from data.mock import generate_multiple_stocks
                     from data.indicators import add_indicators
                     from trading.strategies import create_strategy
@@ -94,7 +110,7 @@ with tab1:
                     if not result['equity_curve'].empty:
                         st.line_chart(result['equity_curve']['equity'])
                     
-                    # Trade stats
+                    # Stats
                     s1, s2, s3 = st.columns(3)
                     s1.metric("Total Trades", result['total_trades'])
                     s2.metric("Buys", result['total_buys'])
@@ -102,57 +118,25 @@ with tab1:
                         
                 except Exception as e:
                     st.error(f"❌ Error: {str(e)}")
-                    import traceback
-                    st.code(traceback.format_exc())
+                    with st.expander("Full Error"):
+                        import traceback
+                        st.code(traceback.format_exc())
 
 with tab2:
     st.header("Parameter Optimization")
     st.info("🎯 Select strategy and parameter ranges to find optimal settings")
-    
-    opt_strategy = st.selectbox("Strategy to Optimize", ["sma_crossover", "rsi", "macd"])
-    
-    if st.button("⚡ Start Optimization"):
-        with st.spinner("Optimizing..."):
-            st.info("Optimization feature coming soon!")
 
 with tab3:
     st.header("Strategy Comparison")
     st.info("📉 Compare multiple strategies at once")
-    
-    compare_strategies = st.multiselect(
-        "Select Strategies", 
-        ["sma_crossover", "rsi", "macd", "bollinger", "momentum"],
-        default=["sma_crossover", "rsi"]
-    )
-    
-    if st.button("🔄 Compare") and compare_strategies:
-        st.info("Comparison feature coming soon!")
 
 with tab4:
-    st.header("About QuantMining")
-    
+    st.header("About")
     st.markdown("""
     ## 📈 QuantMining
     
     Quantitative Trading Backtest Platform
     
-    ### Features
-    - 📊 **Strategy Backtesting** - Test your trading strategies
-    - 📈 **Parameter Optimization** - Find optimal parameters
-    - 📉 **Multi-Strategy Comparison** - Compare different approaches
-    
-    ### Supported Strategies
-    | Strategy | Description |
-    |----------|-------------|
-    | sma_crossover | Moving Average Crossover |
-    | rsi | Relative Strength Index |
-    | macd | MACD |
-    | bollinger | Bollinger Bands |
-    | momentum | Momentum |
-    
-    ### Access
     **https://quants-mining.streamlit.app**
     """)
-    
-    st.divider()
     st.caption("Made with ❤️ by Allen AI")

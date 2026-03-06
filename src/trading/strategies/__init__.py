@@ -9,7 +9,6 @@ from .strategy import (
     create_strategy, STRATEGIES
 )
 
-# 导入高级策略
 from .advanced import (
     MeanReversionStrategy,
     BreakoutStrategy,
@@ -19,6 +18,17 @@ from .advanced import (
     TrendFollowingStrategy,
 )
 
+from .expert import (
+    ADXStrategy,
+    VWAPStrategy,
+    OBVStrategy,
+    CCIStrategy,
+    MFIStrategy,
+    WilliamsRStrategy,
+    StochasticStrategy,
+    MultiTimeframeStrategy,
+)
+
 __all__ = [
     'Strategy', 'Signal',
     'SMACrossover', 'RSIStrategy', 'MACDStrategy',
@@ -26,5 +36,8 @@ __all__ = [
     'MeanReversionStrategy', 'BreakoutStrategy',
     'DualMAStrategy', 'VolatilityStrategy',
     'CompositeStrategy', 'TrendFollowingStrategy',
+    'ADXStrategy', 'VWAPStrategy', 'OBVStrategy',
+    'CCIStrategy', 'MFIStrategy', 'WilliamsRStrategy',
+    'StochasticStrategy', 'MultiTimeframeStrategy',
     'create_strategy', 'STRATEGIES'
 ]

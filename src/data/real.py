@@ -115,9 +115,16 @@ class DataFetcher:
             df.index = pd.to_datetime(df.index)
             df = df.sort_index()
             
-            # Convert column types
-            for col in ['open', 'high', 'low', 'close', 'volume']:
-                df[col] = pd.to_numeric(df[col])
+            # Alpha Vantage returns columns like "1. open"
+            rename_map = {}
+            for c in df.columns:
+                name = c.split('. ')[-1] if '. ' in c else c
+                rename_map[c] = name.capitalize()
+            df.rename(columns=rename_map, inplace=True)
+
+            for col in ['Open', 'High', 'Low', 'Close', 'Volume']:
+                if col in df.columns:
+                    df[col] = pd.to_numeric(df[col])
             
             # Limit to period
             days = self._period_to_days(period)

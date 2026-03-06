@@ -56,10 +56,18 @@ class TestPortfolio:
         # portfolio.add_position("AAPL", 10, 150.0)
 
 
-class TestDataLoader:
-    """Test suite for data loading."""
+class TestDataFetcher:
+    """Test suite for data fetching."""
 
-    def test_data_loader_exists(self):
-        """Test data loader module exists."""
-        from src.data import data_loader
-        assert data_loader is not None
+    def test_data_fetcher_exists(self):
+        """Test data fetcher module exists."""
+        from src.data import DataFetcher
+        assert DataFetcher is not None
+
+    def test_mock_data_generation(self):
+        """Test mock data can be generated."""
+        from src.data.mock import generate_mock_data
+        data = generate_mock_data("TEST", start_date="2025-01-01")
+        assert data is not None
+        assert len(data) > 0
+        assert 'Close' in data.columns

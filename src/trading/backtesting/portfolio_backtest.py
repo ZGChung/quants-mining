@@ -62,6 +62,8 @@ class PortfolioBacktester:
         Returns:
             回测结果字典
         """
+        self.trades = []
+        
         # 获取所有日期
         all_dates = set()
         for df in data.values():
@@ -194,6 +196,24 @@ class PortfolioBacktester:
         buys = [t for t in self.trades if t.action == 'BUY']
         sells = [t for t in self.trades if t.action == 'SELL']
         
+        # 配对买卖计算胜率
+        buy_map = {}
+        for t in self.trades:
+            if t.action == 'BUY':
+                buy_map[t.ticker] = t
+        
+        wins, losses = [], []
+        for t in self.trades:
+            if t.action == 'SELL' and t.ticker in buy_map:
+                pnl = t.value - buy_map[t.ticker].value
+                (wins if pnl > 0 else losses).append(pnl)
+                del buy_map[t.ticker]
+        
+        total_closed = len(wins) + len(losses)
+        win_rate = len(wins) / total_closed if total_closed > 0 else 0
+        avg_win = np.mean(wins) if wins else 0
+        avg_loss = np.mean(losses) if losses else 0
+        
         return {
             'total_return': total_return,
             'annual_return': annual_return,
@@ -203,6 +223,9 @@ class PortfolioBacktester:
             'total_trades': len(self.trades),
             'total_buys': len(buys),
             'total_sells': len(sells),
+            'win_rate': win_rate,
+            'avg_win': avg_win,
+            'avg_loss': avg_loss,
             'equity_curve': equity_df,
             'trades': self.trades,
         }

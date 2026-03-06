@@ -6,6 +6,7 @@ QuantMining CLI - 更新版
 
 import argparse
 import sys
+import pandas as pd
 from src.pipeline import Pipeline, PipelineConfig
 from src.trading.backtesting.portfolio_backtest import PortfolioBacktester
 from src.data.mock import generate_multiple_stocks
@@ -157,5 +158,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import pandas as pd
     main()

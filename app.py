@@ -64,13 +64,21 @@ ALL_STRATEGIES = [
     ("momentum", "Momentum", "Price momentum"),
     ("mean_reversion", "Mean Rev", "Mean reversion"),
     ("breakout", "Breakout", "Channel breakout"),
+    ("adx", "ADX", "ADX trend strength"),
+    ("vwap", "VWAP", "Volume-weighted avg price"),
+    ("obv", "OBV", "On-balance volume"),
+    ("cci", "CCI", "Commodity Channel Index"),
+    ("mfi", "MFI", "Money Flow Index"),
+    ("williams_r", "Williams %R", "Williams %R oscillator"),
+    ("stochastic", "Stochastic", "Stochastic oscillator"),
+    ("multi_timeframe", "Multi TF", "Multi-timeframe MA"),
 ]
 
 # Data sources info
 DATA_SOURCES = {
-    "yahoo": {"name": "Yahoo Finance", "free": True, "key_required": False},
-    "alpha_vantage": {"name": "Alpha Vantage", "free": True, "key_required": True},
-    "finnhub": {"name": "Finnhub", "free": True, "key_required": True},
+    "yahoo": {"name": "Yahoo Finance", "free": True, "key_required": False, "rate_limit": "~2000/day"},
+    "alpha_vantage": {"name": "Alpha Vantage", "free": True, "key_required": True, "rate_limit": "25/day"},
+    "finnhub": {"name": "Finnhub", "free": True, "key_required": True, "rate_limit": "60/min"},
 }
 
 # Sidebar
@@ -117,7 +125,30 @@ with st.sidebar:
         params["signal"] = st.slider("Signal", 5, 15, 9)
     elif strategy == "bollinger":
         params["period"] = st.slider("Period", 10, 50, 20)
-        params["std"] = st.slider("Std Dev", 1.0, 3.0, 2.0)
+        params["std_dev"] = st.slider("Std Dev", 1.0, 3.0, 2.0)
+    elif strategy == "momentum":
+        params["lookback"] = st.slider("Lookback", 5, 60, 20)
+        params["threshold"] = st.slider("Threshold", 0.01, 0.10, 0.02)
+    elif strategy == "adx":
+        params["adx_period"] = st.slider("ADX Period", 7, 30, 14)
+        params["adx_threshold"] = st.slider("ADX Threshold", 15, 40, 25)
+    elif strategy == "vwap":
+        params["deviation_threshold"] = st.slider("Deviation", 0.005, 0.05, 0.02)
+    elif strategy == "obv":
+        params["period"] = st.slider("OBV MA Period", 10, 50, 20)
+    elif strategy == "cci":
+        params["period"] = st.slider("CCI Period", 10, 40, 20)
+        params["oversold"] = st.slider("Oversold", -200, -50, -100)
+        params["overbought"] = st.slider("Overbought", 50, 200, 100)
+    elif strategy == "mfi":
+        params["period"] = st.slider("MFI Period", 7, 30, 14)
+        params["oversold"] = st.slider("Oversold", 10, 30, 20)
+        params["overbought"] = st.slider("Overbought", 70, 90, 80)
+    elif strategy == "williams_r":
+        params["period"] = st.slider("Period", 7, 30, 14)
+    elif strategy == "stochastic":
+        params["k_period"] = st.slider("K Period", 5, 21, 14)
+        params["d_period"] = st.slider("D Period", 2, 7, 3)
     
     st.subheader("📊 Backtest")
     capital = st.number_input("Capital ($)", value=100000, step=10000)
@@ -419,7 +450,7 @@ with tab5:
     | Alpha Vantage | ✅ | Yes | 25/day |
     | Finnhub | ✅ | Yes | 60/min |
     
-    ### Supported Strategies
+    ### Supported Strategies (15)
     | Strategy | Description |
     |----------|-------------|
     | sma_crossover | Moving Average Crossover |
@@ -429,6 +460,14 @@ with tab5:
     | momentum | Price Momentum |
     | mean_reversion | Mean Reversion |
     | breakout | Channel Breakout |
+    | adx | ADX Trend Strength |
+    | vwap | Volume-Weighted Avg Price |
+    | obv | On-Balance Volume |
+    | cci | Commodity Channel Index |
+    | mfi | Money Flow Index |
+    | williams_r | Williams %R |
+    | stochastic | Stochastic Oscillator |
+    | multi_timeframe | Multi-Timeframe MA |
     
     ### How to Get API Keys
     - **Alpha Vantage**: [alphavantage.co](https://www.alphavantage.co/support/#api-key)

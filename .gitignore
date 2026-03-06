@@ -74,8 +74,8 @@ env/
 *.csv
 *.xlsx
 *.parquet
-# But keep tests/data for test fixtures
-data/
+# Ignore top-level data/ but not src/data/
+/data/
 
 # OS
 .DS_Store

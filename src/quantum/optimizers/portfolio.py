@@ -77,7 +77,7 @@ class PortfolioOptimizer:
         
     def create_portfolio_problem(self, 
                                    expected_returns: np.ndarray, 
-                                   covariance_matrix: np.ndarray) -> Optional[QuadraticProgram]:
+                                   covariance_matrix: np.ndarray) -> Optional["QuadraticProgram"]:
         """
         Create a quadratic programming problem for portfolio optimization.
         

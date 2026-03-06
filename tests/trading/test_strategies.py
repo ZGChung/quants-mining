@@ -40,12 +40,12 @@ class TestPortfolio:
         assert portfolio is not None
         assert portfolio.initial_capital == 100000
 
-    def test_portfolio_has_current_value(self):
-        """Test portfolio tracks current value."""
+    def test_portfolio_has_total_value(self):
+        """Test portfolio tracks total value."""
         from src.trading.portfolio import Portfolio
         
         portfolio = Portfolio(initial_capital=100000)
-        assert hasattr(portfolio, 'current_value')
+        assert portfolio.total_value == 100000
 
     def test_portfolio_can_add_position(self):
         """Test portfolio can add a position."""

@@ -5,13 +5,13 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 
-class TestDataLoader:
-    """Test suite for data loading functionality."""
+class TestDataFetcher:
+    """Test suite for data fetching functionality."""
 
-    def test_data_loader_can_be_imported(self):
-        """Test that data loader can be imported."""
-        from src.data import data_loader
-        assert data_loader is not None
+    def test_data_fetcher_can_be_imported(self):
+        """Test that data fetcher can be imported."""
+        from src.data import DataFetcher
+        assert DataFetcher is not None
 
 
 class TestDataProcessor:

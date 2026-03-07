@@ -1,82 +1,46 @@
-# Quants Mining (量子量化交易项目)
+# QuantMining - 量化交易回测平台
 
-> Exploring the intersection of quantum computing and quantitative trading
+> **Status: Archived / 已归档** — 本项目不再积极维护。代码可正常运行，欢迎 fork。
 
-## 项目简介 (Project Overview)
+## 在线体验
 
-Quants Mining 是一个探索性项目，旨在研究量子计算在量化交易中的应用。项目将尝试使用量子计算技术来优化交易策略、风险管理和投资组合优化等核心量化交易问题。
+https://quants-mining.streamlit.app
 
-This is an exploratory project investigating the application of quantum computing in quantitative trading. The project explores using quantum computing technologies to optimize trading strategies, risk management, and portfolio optimization.
+## 功能
 
-## 研究方向 (Research Directions)
+- **15 个交易策略**：SMA、RSI、MACD、Bollinger、Momentum、Mean Reversion、Breakout、ADX、VWAP、OBV、CCI、MFI、Williams %R、Stochastic、Multi-Timeframe
+- **组合回测**：多股票、滑点、手续费、胜率统计
+- **参数优化**：网格搜索
+- **策略对比**：并排比较收益、夏普、回撤
+- **多数据源**：Yahoo Finance (免费)、Alpha Vantage、Finnhub
+- **17 个技术指标**
 
-- **量子优化算法**: 使用量子近似优化算法 (QAOA) 解决投资组合优化问题
-- **量子机器学习**: 探索量子神经网络在价格预测中的应用
-- **量子蒙特卡洛模拟**: 使用量子计算加速蒙特卡洛方法进行风险评估
-- **量子特征提取**: 研究量子计算在金融市场特征提取中的潜力
-
-## 技术栈 (Tech Stack)
-
-- **量子计算框架**: Qiskit, Cirq, PennyLane
-- **数据处理**: Pandas, NumPy
-- **量化交易**: Backtrader, Zipline
-- **机器学习**: TensorFlow, PyTorch, Scikit-learn
-
-## 项目结构 (Project Structure)
-
-```
-quants-mining/
-├── src/
-│   ├── quantum/           # 量子计算模块
-│   │   ├── optimizers/    # 量子优化算法
-│   │   ├── ml/            # 量子机器学习
-│   │   └── circuits/      # 量子电路设计
-│   ├── trading/           # 交易策略模块
-│   │   ├── strategies/    # 交易策略
-│   │   ├── backtesting/   # 回测框架
-│   │   └── portfolio/     # 投资组合管理
-│   └── data/              # 数据处理模块
-├── notebooks/             # Jupyter notebooks for research
-├── tests/                 # 单元测试
-├── requirements.txt      # 依赖包
-└── README.md
-```
-
-## 快速开始 (Quick Start)
+## 快速开始
 
 ```bash
-# 克隆项目
-git clone https://github.com/yourusername/quants-mining.git
-cd quants-mining
-
-# 创建虚拟环境
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# 或
-venv\Scripts\activate     # Windows
-
-# 安装依赖
+conda create -n qm python=3.11 -y
+conda activate qm
 pip install -r requirements.txt
+
+# Web 界面
+streamlit run app.py
+
+# CLI
+python run.py --tickers AAPL MSFT GOOGL --strategy rsi --portfolio
+
+# 测试
+pytest tests/ -v
 ```
 
-## 发展阶段 (Development Stages)
+## 项目结构
 
-1. **第一阶段 - 基础架构**: 设置开发环境和项目结构
-2. **第二阶段 - 量子计算基础**: 学习并实现基础量子算法
-3. **第三阶段 - 量化策略**: 开发基本的量化交易策略
-4. **第四阶段 - 量子优化**: 尝试将量子计算应用于交易优化
-5. **第五阶段 - 评估与改进**: 测试和优化混合量子-经典解决方案
+```
+src/
+├── data/           # 数据获取、指标计算、模拟数据
+├── trading/        # 策略、回测、组合管理、优化
+└── quantum/        # 量子优化 (实验性，需 Qiskit)
+```
 
-## 注意事项 (Notes)
-
-⚠️ 这是一个探索性项目，旨在学习和研究量子计算在金融领域的应用潜力。量子计算硬件仍在发展中，许多实际应用仍处于研究阶段。
-
-⚠️ This is an exploratory project for learning and researching quantum computing applications in finance. Quantum computing hardware is still evolving, and many practical applications are still in the research phase.
-
-## 许可证 (License)
+## 许可证
 
 MIT License
-
-## 联系方式 (Contact)
-
-如有问题或建议，欢迎提交 Issue 或 Pull Request。

@@ -96,11 +96,11 @@ with st.sidebar:
         
         if alpha_key:
             API_KEYS['alpha_vantage'] = alpha_key
-            set_api_keys(API_KEYS)
+            data_fetcher.api_keys.update(API_KEYS)
             st.success("✅ Alpha Vantage key set")
         if finnhub_key:
             API_KEYS['finnhub'] = finnhub_key
-            set_api_keys(API_KEYS)
+            data_fetcher.api_keys.update(API_KEYS)
             st.success("✅ Finnhub key set")
     
     pool = st.selectbox("Stock Pool", list(STOCK_POOLS.keys()))
@@ -120,8 +120,8 @@ with st.sidebar:
         params["oversold"] = st.slider("Oversold", 10, 40, 30)
         params["overbought"] = st.slider("Overbought", 60, 90, 70)
     elif strategy == "macd":
-        params["fast_period"] = st.slider("Fast", 5, 20, 12)
-        params["slow_period"] = st.slider("Slow", 15, 50, 26)
+        params["fast"] = st.slider("Fast", 5, 20, 12)
+        params["slow"] = st.slider("Slow", 15, 50, 26)
         params["signal"] = st.slider("Signal", 5, 15, 9)
     elif strategy == "bollinger":
         params["period"] = st.slider("Period", 10, 50, 20)
@@ -197,7 +197,7 @@ with tab1:
                             data[ticker] = add_indicators(data[ticker])
                         
                         strat = create_strategy(strategy, **params)
-                        bt = PortfolioBacktester(capital, max_pos, 1.0/max_pos)
+                        bt = PortfolioBacktester(initial_capital=capital, max_positions=max_pos, position_size=1.0/max_pos)
                         result = bt.run(data, strat)
                         
                         st.success("✅ Backtest Complete!")
@@ -265,7 +265,7 @@ with tab2:
                             data[opt_ticker] = add_indicators(data[opt_ticker])
                             
                             strat = create_strategy(opt_strategy, fast_period=fast, slow_period=slow)
-                            bt = PortfolioBacktester(100000, 1, 1.0)
+                            bt = PortfolioBacktester(initial_capital=100000, max_positions=1, position_size=1.0)
                             result = bt.run(data, strat)
                             
                             results.append({
@@ -308,7 +308,7 @@ with tab3:
                 results = []
                 for strat_name in compare_strategies:
                     strat = create_strategy(strat_name)
-                    bt = PortfolioBacktester(100000, 1, 1.0)
+                    bt = PortfolioBacktester(initial_capital=100000, max_positions=1, position_size=1.0)
                     result = bt.run(data, strat)
                     
                     results.append({

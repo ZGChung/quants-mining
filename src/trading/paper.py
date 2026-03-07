@@ -41,8 +41,7 @@ class PaperTrader:
         self.orders: List[PaperOrder] = []
         self.portfolio_history: List[Dict] = []
     
-    @property
-    def portfolio_value(self, prices: Dict[str, float]) -> float:
+    def get_portfolio_value(self, prices: Dict[str, float]) -> float:
         """组合市值"""
         positions_value = sum(
             self.positions.get(t, 0) * prices.get(t, 0)
@@ -128,7 +127,7 @@ class PaperTrader:
                 self.positions.get(t, 0) * prices.get(t, 0)
                 for t in self.positions
             ),
-            'portfolio_value': self.portfolio_value(prices),
+            'portfolio_value': self.get_portfolio_value(prices),
             'positions': dict(self.positions),
         })
     
@@ -206,7 +205,7 @@ class LivePaperTrader(PaperTrader):
         signal = self.run_signals(ticker)
         
         if signal == 1:  # BUY
-            target_value = self.portfolio_value({ticker: current_price}) / self.max_positions
+            target_value = self.get_portfolio_value({ticker: current_price}) / self.max_positions
             shares = int(target_value / (current_price * (1 + self.slippage)))
             
             if shares > 0:

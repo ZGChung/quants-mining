@@ -84,7 +84,7 @@ def plot_backtest_results(
         
         if save_path:
             plt.savefig(save_path, dpi=150, bbox_inches='tight')
-            print(f" Chart saved to {📊save_path}")
+            print(f"Chart saved to {save_path}")
         
         plt.show()
         

@@ -18,7 +18,7 @@ class RealTimeData:
 
     def __init__(self, source: str = "yahoo"):
         self.source = source
-        self.cache = {}
+        self.cache: dict = {}
         self.cache_timeout = 60  # 秒
 
     def fetch(self, ticker: str, period: str = "1d") -> Optional[pd.DataFrame]:

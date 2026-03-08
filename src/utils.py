@@ -124,9 +124,9 @@ class Cache:
     """简单缓存"""
 
     def __init__(self, max_size: int = 100):
-        self.cache = {}
+        self.cache: dict = {}
         self.max_size = max_size
-        self.access_count = {}
+        self.access_count: dict = {}
 
     def get(self, key: str):
         """获取缓存"""
@@ -139,7 +139,7 @@ class Cache:
         """设置缓存"""
         if len(self.cache) >= self.max_size:
             # 删除最少使用的
-            lru_key = min(self.access_count, key=self.access_count.get)
+            lru_key = min(self.access_count, key=lambda k: self.access_count.get(k, 0))
             del self.cache[lru_key]
             del self.access_count[lru_key]
 

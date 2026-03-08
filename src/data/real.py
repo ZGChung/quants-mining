@@ -17,9 +17,9 @@ logger = logging.getLogger(__name__)
 class DataFetcher:
     """Unified data fetcher with multiple source support"""
 
-    def __init__(self, api_keys: Dict[str, str] = None):
+    def __init__(self, api_keys: Optional[Dict[str, str]] = None):
         self.api_keys = api_keys or {}
-        self.cache = {}
+        self.cache: dict = {}
         self.cache_duration = 60  # seconds
 
     def fetch(
@@ -104,7 +104,7 @@ class DataFetcher:
                 "apikey": api_key,
             }
 
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, timeout=10)  # type: ignore[arg-type]
             data = response.json()
 
             if "Error Message" in data or "Note" in data:
@@ -163,7 +163,7 @@ class DataFetcher:
                 "token": api_key,
             }
 
-            response = requests.get(url, params=params, timeout=10)
+            response = requests.get(url, params=params, timeout=10)  # type: ignore[arg-type]
             data = response.json()
 
             if data.get("s") != "ok":

@@ -17,7 +17,7 @@ class StrategyConfig:
 
     name: str
     enabled: bool = True
-    parameters: Dict[str, Any] = None
+    parameters: Optional[Dict[str, Any]] = None
 
     def __post_init__(self):
         if self.parameters is None:
@@ -32,7 +32,7 @@ class DataConfig:
     cache_enabled: bool = True
     cache_ttl: int = 3600  # seconds
     api_key: Optional[str] = None
-    tickers: list = None
+    tickers: Optional[list] = None
 
     def __post_init__(self):
         if self.tickers is None:
@@ -54,9 +54,9 @@ class BacktestConfig:
 class AppConfig:
     """应用配置"""
 
-    data: DataConfig = None
-    backtest: BacktestConfig = None
-    strategies: list = None
+    data: Optional[DataConfig] = None
+    backtest: Optional[BacktestConfig] = None
+    strategies: Optional[list] = None
 
     def __post_init__(self):
         if self.data is None:
@@ -108,20 +108,27 @@ class ConfigManager:
 
     def get_strategy_params(self, strategy_name: str) -> Dict[str, Any]:
         """获取策略参数"""
-        for s in self.config.strategies:
+        strategies = self.config.strategies
+        if strategies is None:
+            return {}
+        for s in strategies:
             if s.name == strategy_name:
                 return s.parameters
         return {}
 
     def set_strategy_params(self, strategy_name: str, parameters: Dict[str, Any]):
         """设置策略参数"""
-        for s in self.config.strategies:
+        strategies = self.config.strategies
+        if strategies is None:
+            self.config.strategies = [StrategyConfig(strategy_name, parameters=parameters)]
+            return
+        for s in strategies:
             if s.name == strategy_name:
                 s.parameters = parameters
                 return
 
         # 新策略
-        self.config.strategies.append(StrategyConfig(strategy_name, parameters=parameters))
+        strategies.append(StrategyConfig(strategy_name, parameters=parameters))
 
 
 # 全局配置实例
@@ -131,11 +138,14 @@ config = ConfigManager()
 if __name__ == "__main__":
     # 测试
     config = ConfigManager()
-    print(f"Initial capital: {config.config.backtest.initial_capital}")
-    print(f"Data source: {config.config.data.source}")
-
+    bt = config.config.backtest
+    dc = config.config.data
+    if bt is not None and dc is not None:
+        print(f"Initial capital: {bt.initial_capital}")
+        print(f"Data source: {dc.source}")
     # 修改配置
-    config.config.backtest.initial_capital = 200000
+    if config.config.backtest is not None:
+        config.config.backtest.initial_capital = 200000
     config.save()
 
     print("✅ Config test completed")

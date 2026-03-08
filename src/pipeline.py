@@ -19,7 +19,7 @@ class PipelineConfig:
 
     tickers: List[str]  # 股票列表
     strategy_name: str = "sma_crossover"  # 策略名称
-    strategy_params: Dict = None  # 策略参数
+    strategy_params: Optional[Dict] = None  # 策略参数
     initial_capital: float = 100000.0  # 初始资金
     period: str = "1y"  # 数据周期
     commission: float = 0.001  # 手续费

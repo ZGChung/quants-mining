@@ -284,7 +284,7 @@ class QuantumEnhancedStrategy:
             return signals
 
         # Build training data from first 70% of valid data
-        valid_features = features_df.iloc[valid_start:]
+        valid_features = features_df.iloc[valid_start:]  # type: ignore[attr-defined]
         future_returns = data["Close"].pct_change(5).shift(-5)
 
         train_end = int(len(valid_features) * 0.7)

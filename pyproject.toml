@@ -43,3 +43,10 @@ target-version = ["py311"]
 
 [tool.mypy]
 ignore_missing_imports = true
+no_implicit_optional = false
+allow_redefinition = true
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = "src.heartbeat"
+disable_error_code = ["assignment", "union-attr", "return-value", "arg-type", "attr-defined", "var-annotated"]

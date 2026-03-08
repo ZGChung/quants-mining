@@ -69,7 +69,7 @@ class PortfolioBacktester:
         all_dates = set()
         for df in data.values():
             all_dates.update(df.index)
-        all_dates = sorted(all_dates)
+        dates_list = sorted(all_dates)
 
         # 初始化
         cash = self.initial_capital
@@ -77,7 +77,7 @@ class PortfolioBacktester:
 
         equity_history = []
 
-        for date in all_dates:
+        for date in dates_list:
             # 获取当天的信号
             signals = {}
             for ticker, df in data.items():
@@ -211,7 +211,8 @@ class PortfolioBacktester:
             if t.action == "BUY":
                 buy_map[t.ticker] = t
 
-        wins, losses = [], []
+        wins: list = []
+        losses: list = []
         for t in self.trades:
             if t.action == "SELL" and t.ticker in buy_map:
                 pnl = t.value - buy_map[t.ticker].value

@@ -217,9 +217,9 @@ class VariationalAnsatz:
         # Extract per-qubit marginal probabilities as weights
         weights = np.zeros(n)
         for idx in range(dim):
-            bits = format(idx, f"0{n}b")
+            bitstr = format(idx, f"0{n}b")
             for q in range(n):
-                if bits[q] == "1":
+                if bitstr[q] == "1":
                     weights[q] += probs[idx]
 
         # Normalize to sum to 1

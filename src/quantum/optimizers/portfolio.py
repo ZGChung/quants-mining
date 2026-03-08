@@ -18,7 +18,7 @@ Background:
 """
 
 import numpy as np
-from typing import Optional, Dict, List, Tuple
+from typing import Optional, Dict, List, Tuple, Union
 from scipy.optimize import minimize
 import logging
 
@@ -201,7 +201,7 @@ class PortfolioOptimizer:
         self.n_assets = n_assets
         self.method = method
         self.risk_factor = risk_factor
-
+        self._optimizer: Union[ClassicalPortfolioOptimizer, QuantumPortfolioOptimizer]
         if method == "classical":
             self._optimizer = ClassicalPortfolioOptimizer()
         elif method == "quantum":

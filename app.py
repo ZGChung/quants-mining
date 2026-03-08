@@ -240,12 +240,71 @@ def display_export_buttons(result, prefix="backtest"):
 
 # ---------- TABS ----------
 tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
-    "📊 Backtest", "📈 Optimize", "📉 Compare",
-    "💹 Paper Trade", "📡 Real Data", "⚛️ Quantum Portfolio", "ℹ️ About"
+    "ℹ️ About", "📊 Backtest", "📈 Optimize", "📉 Compare",
+    "💹 Paper Trade", "📡 Real Data", "⚛️ Quantum Portfolio"
 ])
 
-# ============== BACKTEST TAB ==============
+# ============== ABOUT TAB (default) ==============
 with tab1:
+    st.header("About QuantMining")
+
+    st.markdown("""
+    ## A Personal Deep Dive into Quantitative Trading
+
+    I built QuantMining from scratch as a learning project to deepen my understanding
+    of quantitative trading, technical analysis, and quantum computing approaches
+    to portfolio optimization.
+
+    ### What I Explored
+
+    **Classical Trading Strategies**
+    - Implemented 15 strategies from textbook indicators (SMA, RSI, MACD, Bollinger)
+      to more advanced approaches (ADX trend following, VWAP, CCI, MFI, Stochastic)
+    - Each strategy follows the same `Strategy` base class with `generate_signals()`
+
+    **Backtesting & Risk Management**
+    - Built a portfolio backtester handling multiple assets, position sizing,
+      slippage, and commission
+    - Implemented risk metrics: VaR, CVaR, Sortino ratio, Calmar ratio,
+      profit factor, information ratio
+
+    **Quantum Portfolio Optimization**
+    - Formulated portfolio selection as a QUBO problem
+    - Implemented QAOA circuit for combinatorial asset selection
+      (classical simulation via brute-force enumeration)
+    - Built variational ansatz for continuous weight optimization
+    - Compared against classical Markowitz mean-variance optimization
+
+    **Quantum Machine Learning**
+    - Implemented quantum feature maps (angle encoding + ZZ entanglement)
+    - Built variational quantum classifier for BUY/SELL signal prediction
+    - All quantum circuits simulated classically via numpy state vectors
+
+    **Data Engineering**
+    - Multi-source data pipeline: Yahoo Finance, Alpha Vantage, Finnhub
+    - 17 technical indicators with caching and rate limiting
+    - Market scanner for momentum, volatility, and oversold screening
+
+    ### Tech Stack
+    | Layer | Tools |
+    |-------|-------|
+    | Frontend | Streamlit |
+    | Data | yfinance, Alpha Vantage API, Finnhub API |
+    | Computation | NumPy, Pandas, SciPy |
+    | Quantum | Custom numpy simulation, optional Qiskit |
+    | ML | scikit-learn, SciPy optimize |
+    | CI/CD | GitHub Actions (pytest, black, flake8, mypy) |
+
+    ### Links
+    - 🌐 **Live Demo**: [quants-mining.streamlit.app](https://quants-mining.streamlit.app)
+    - 💻 **Source Code**: [github.com/ZGChung/quants-mining](https://github.com/ZGChung/quants-mining)
+    """)
+
+    st.divider()
+    st.caption("Built by Jayson as a personal research project")
+
+# ============== BACKTEST TAB ==============
+with tab2:
     st.header("Strategy Backtest")
 
     col1, col2 = st.columns([3, 1])
@@ -295,7 +354,7 @@ with tab1:
                     st.code(traceback.format_exc())
 
 # ============== OPTIMIZE TAB ==============
-with tab2:
+with tab3:
     st.header("Parameter Optimization")
     st.info("🎯 Grid search across parameter space for any strategy")
 
@@ -367,7 +426,7 @@ with tab2:
                 st.error(f"Error: {e}")
 
 # ============== COMPARE TAB ==============
-with tab3:
+with tab4:
     st.header("Strategy Comparison")
 
     compare_col1, compare_col2 = st.columns(2)
@@ -419,7 +478,7 @@ with tab3:
                 st.error(f"Error: {e}")
 
 # ============== PAPER TRADING TAB ==============
-with tab4:
+with tab5:
     st.header("Paper Trading Simulator")
     st.info("Simulate trading with a strategy on historical data, step by step")
 
@@ -491,7 +550,7 @@ with tab4:
                 st.code(traceback.format_exc())
 
 # ============== REAL DATA TAB ==============
-with tab5:
+with tab6:
     st.header("Real Market Data")
 
     source_col1, source_col2 = st.columns(2)
@@ -579,7 +638,7 @@ with tab5:
         st.warning(f"🔴 Market Closed — {status['time']}")
 
 # ============== QUANTUM PORTFOLIO TAB ==============
-with tab6:
+with tab7:
     st.header("Quantum Portfolio Optimization")
     st.info("Compare classical Markowitz optimization with quantum (QAOA) asset selection")
 
@@ -663,61 +722,3 @@ with tab6:
                 import traceback
                 st.code(traceback.format_exc())
 
-# ============== ABOUT TAB ==============
-with tab7:
-    st.header("About QuantMining")
-
-    st.markdown("""
-    ## A Personal Deep Dive into Quantitative Trading
-
-    I built QuantMining from scratch as a learning project to deepen my understanding
-    of quantitative trading, technical analysis, and quantum computing approaches
-    to portfolio optimization.
-
-    ### What I Explored
-
-    **Classical Trading Strategies**
-    - Implemented 15 strategies from textbook indicators (SMA, RSI, MACD, Bollinger)
-      to more advanced approaches (ADX trend following, VWAP, CCI, MFI, Stochastic)
-    - Each strategy follows the same `Strategy` base class with `generate_signals()`
-
-    **Backtesting & Risk Management**
-    - Built a portfolio backtester handling multiple assets, position sizing,
-      slippage, and commission
-    - Implemented risk metrics: VaR, CVaR, Sortino ratio, Calmar ratio,
-      profit factor, information ratio
-
-    **Quantum Portfolio Optimization**
-    - Formulated portfolio selection as a QUBO problem
-    - Implemented QAOA circuit for combinatorial asset selection
-      (classical simulation via brute-force enumeration)
-    - Built variational ansatz for continuous weight optimization
-    - Compared against classical Markowitz mean-variance optimization
-
-    **Quantum Machine Learning**
-    - Implemented quantum feature maps (angle encoding + ZZ entanglement)
-    - Built variational quantum classifier for BUY/SELL signal prediction
-    - All quantum circuits simulated classically via numpy state vectors
-
-    **Data Engineering**
-    - Multi-source data pipeline: Yahoo Finance, Alpha Vantage, Finnhub
-    - 17 technical indicators with caching and rate limiting
-    - Market scanner for momentum, volatility, and oversold screening
-
-    ### Tech Stack
-    | Layer | Tools |
-    |-------|-------|
-    | Frontend | Streamlit |
-    | Data | yfinance, Alpha Vantage API, Finnhub API |
-    | Computation | NumPy, Pandas, SciPy |
-    | Quantum | Custom numpy simulation, optional Qiskit |
-    | ML | scikit-learn, SciPy optimize |
-    | CI/CD | GitHub Actions (pytest, black, flake8, mypy) |
-
-    ### Links
-    - 🌐 **Live Demo**: [quants-mining.streamlit.app](https://quants-mining.streamlit.app)
-    - 💻 **Source Code**: [github.com/ZGChung/quants-mining](https://github.com/ZGChung/quants-mining)
-    """)
-
-    st.divider()
-    st.caption("Built by Jayson as a personal research project")

@@ -20,8 +20,10 @@ Background:
 All simulation is done classically via numpy state vector evolution.
 """
 
+from __future__ import annotations
+
 import numpy as np
-from typing import Optional, Tuple, List
+from typing import Any, Optional
 from scipy.optimize import minimize
 import logging
 
@@ -44,20 +46,16 @@ class QuantumFeatureMap:
         self.n_features = n_features
         self.n_qubits = n_features
         self.reps = reps
-        self.dim = 2 ** n_features
+        self.dim = 2**n_features
 
     def _ry(self, theta: float) -> np.ndarray:
         c, s = np.cos(theta / 2), np.sin(theta / 2)
         return np.array([[c, -s], [s, c]])
 
     def _rz(self, theta: float) -> np.ndarray:
-        return np.array([
-            [np.exp(-1j * theta / 2), 0],
-            [0, np.exp(1j * theta / 2)]
-        ])
+        return np.array([[np.exp(-1j * theta / 2), 0], [0, np.exp(1j * theta / 2)]])
 
-    def _apply_single_gate(self, state: np.ndarray, gate: np.ndarray,
-                           qubit: int) -> np.ndarray:
+    def _apply_single_gate(self, state: np.ndarray, gate: np.ndarray, qubit: int) -> np.ndarray:
         """Apply single-qubit gate to state vector."""
         n = self.n_qubits
         if qubit == 0:
@@ -68,14 +66,13 @@ class QuantumFeatureMap:
             op = np.kron(op, gate if q == qubit else np.eye(2))
         return op @ state
 
-    def _apply_zz(self, state: np.ndarray, theta: float,
-                  q1: int, q2: int) -> np.ndarray:
+    def _apply_zz(self, state: np.ndarray, theta: float, q1: int, q2: int) -> np.ndarray:
         """Apply RZZ gate: exp(-i * theta/2 * Z_q1 Z_q2)."""
         n = self.n_qubits
         dim = self.dim
         new_state = np.zeros(dim, dtype=complex)
         for idx in range(dim):
-            bits = format(idx, f'0{n}b')
+            bits = format(idx, f"0{n}b")
             z1 = 1 - 2 * int(bits[q1])
             z2 = 1 - 2 * int(bits[q2])
             phase = np.exp(-1j * theta / 2 * z1 * z2)
@@ -137,11 +134,10 @@ class QuantumClassifier:
         self.params = np.random.randn(self.n_params) * 0.1
         self.trained = False
 
-    def _apply_variational_layer(self, state: np.ndarray,
-                                  layer_params: np.ndarray) -> np.ndarray:
+    def _apply_variational_layer(self, state: np.ndarray, layer_params: np.ndarray) -> np.ndarray:
         """Apply one layer of trainable rotations + entanglement."""
         n = self.n_qubits
-        dim = 2 ** n
+        dim = 2**n
 
         # Ry rotations
         for q in range(n):
@@ -152,17 +148,16 @@ class QuantumClassifier:
         for q in range(n - 1):
             new_state = np.zeros(dim, dtype=complex)
             for idx in range(dim):
-                bits = list(format(idx, f'0{n}b'))
-                if bits[q] == '1':
-                    bits[q + 1] = '0' if bits[q + 1] == '1' else '1'
-                target = int(''.join(bits), 2)
+                bits = list(format(idx, f"0{n}b"))
+                if bits[q] == "1":
+                    bits[q + 1] = "0" if bits[q + 1] == "1" else "1"
+                target = int("".join(bits), 2)
                 new_state[target] += state[idx]
             state = new_state
 
         return state
 
-    def predict_proba(self, features: np.ndarray,
-                      params: Optional[np.ndarray] = None) -> float:
+    def predict_proba(self, features: np.ndarray, params: Optional[np.ndarray] = None) -> float:
         """
         Predict P(class=1) for a single feature vector.
 
@@ -175,14 +170,14 @@ class QuantumClassifier:
 
         for layer in range(self.n_layers):
             start = layer * self.n_qubits
-            layer_params = params[start:start + self.n_qubits]
+            layer_params = params[start : start + self.n_qubits]
             state = self._apply_variational_layer(state, layer_params)
 
         # P(qubit 0 = |1>) = sum of |amp|^2 where first bit is 1
         n = self.n_qubits
         prob_one = 0.0
-        for idx in range(2 ** n):
-            if format(idx, f'0{n}b')[0] == '1':
+        for idx in range(2**n):
+            if format(idx, f"0{n}b")[0] == "1":
                 prob_one += abs(state[idx]) ** 2
 
         return float(prob_one)
@@ -191,8 +186,7 @@ class QuantumClassifier:
         """Predict class: 1 (BUY) or -1 (SELL)."""
         return 1 if self.predict_proba(features) > 0.5 else -1
 
-    def fit(self, X: np.ndarray, y: np.ndarray,
-            max_iter: int = 200) -> dict:
+    def fit(self, X: np.ndarray, y: np.ndarray, max_iter: int = 200) -> dict:
         """
         Train the classifier.
 
@@ -204,6 +198,7 @@ class QuantumClassifier:
         Returns:
             Training info dict
         """
+
         def loss(params):
             total = 0.0
             for i in range(len(X)):
@@ -211,8 +206,7 @@ class QuantumClassifier:
                 total -= y[i] * np.log(p) + (1 - y[i]) * np.log(1 - p)
             return total / len(X)
 
-        result = minimize(loss, self.params, method='COBYLA',
-                          options={'maxiter': max_iter})
+        result = minimize(loss, self.params, method="COBYLA", options={"maxiter": max_iter})
 
         self.params = result.x
         self.trained = True
@@ -221,9 +215,9 @@ class QuantumClassifier:
         accuracy = np.mean(predictions == y)
 
         return {
-            'loss': result.fun,
-            'accuracy': accuracy,
-            'iterations': result.nfev,
+            "loss": result.fun,
+            "accuracy": accuracy,
+            "iterations": result.nfev,
         }
 
 
@@ -246,7 +240,8 @@ class QuantumEnhancedStrategy:
     def _extract_features(self, data) -> np.ndarray:
         """Extract normalized features from price data."""
         import pandas as pd
-        close = data['Close'] if isinstance(data, pd.DataFrame) else data
+
+        close = data["Close"] if isinstance(data, pd.DataFrame) else data
 
         ret = close.pct_change(self.lookback).fillna(0)
         vol = close.pct_change().rolling(self.lookback).std().fillna(0)
@@ -265,15 +260,18 @@ class QuantumEnhancedStrategy:
                 return ((s - s.mean()) / std).clip(-1, 1)
             return s * 0
 
-        features = pd.DataFrame({
-            'returns': norm(ret),
-            'volatility': norm(vol),
-            'rsi': rsi * 2 - 1,  # [0,1] -> [-1,1]
-        }, index=close.index)
+        features = pd.DataFrame(
+            {
+                "returns": norm(ret),
+                "volatility": norm(vol),
+                "rsi": rsi * 2 - 1,  # [0,1] -> [-1,1]
+            },
+            index=close.index,
+        )
 
         return features
 
-    def generate_signals(self, data) -> "pd.Series":
+    def generate_signals(self, data) -> Any:
         """Generate trading signals using the quantum classifier."""
         import pandas as pd
 
@@ -287,7 +285,7 @@ class QuantumEnhancedStrategy:
 
         # Build training data from first 70% of valid data
         valid_features = features_df.iloc[valid_start:]
-        future_returns = data['Close'].pct_change(5).shift(-5)
+        future_returns = data["Close"].pct_change(5).shift(-5)
 
         train_end = int(len(valid_features) * 0.7)
         train_features = valid_features.iloc[:train_end]

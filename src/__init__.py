@@ -10,8 +10,8 @@ from .pipeline import Pipeline, PipelineConfig
 __version__ = "0.1.0"
 
 __all__ = [
-    'data',
-    'trading',
-    'Pipeline',
-    'PipelineConfig',
+    "data",
+    "trading",
+    "Pipeline",
+    "PipelineConfig",
 ]

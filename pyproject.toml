@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.backends._legacy:_Backend"
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "quantmining"
@@ -39,6 +39,7 @@ testpaths = ["tests"]
 
 [tool.black]
 line-length = 100
+target-version = ["py311"]
 
 [tool.mypy]
 ignore_missing_imports = true

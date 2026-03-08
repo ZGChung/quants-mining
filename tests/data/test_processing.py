@@ -1,4 +1,5 @@
 """Tests for data processing module."""
+
 import pytest
 import numpy as np
 import pandas as pd
@@ -11,6 +12,7 @@ class TestDataFetcher:
     def test_data_fetcher_can_be_imported(self):
         """Test that data fetcher can be imported."""
         from src.data import DataFetcher
+
         assert DataFetcher is not None
 
 
@@ -64,12 +66,12 @@ class TestDataValidator:
 
     def test_check_for_missing_values(self):
         """Test missing value detection."""
-        df = pd.DataFrame({'a': [1, 2, None], 'b': [4, None, 6]})
+        df = pd.DataFrame({"a": [1, 2, None], "b": [4, None, 6]})
         missing = df.isnull().sum().sum()
         assert missing == 2
 
     def test_check_for_duplicates(self):
         """Test duplicate detection."""
-        df = pd.DataFrame({'a': [1, 2, 2], 'b': [3, 4, 4]})
+        df = pd.DataFrame({"a": [1, 2, 2], "b": [3, 4, 4]})
         duplicates = df.duplicated().sum()
         assert duplicates == 1

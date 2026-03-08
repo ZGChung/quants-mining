@@ -3,10 +3,15 @@
 """
 
 from .strategy import (
-    Strategy, Signal,
-    SMACrossover, RSIStrategy, MACDStrategy,
-    BollingerBandsStrategy, MomentumStrategy,
-    create_strategy, STRATEGIES
+    Strategy,
+    Signal,
+    SMACrossover,
+    RSIStrategy,
+    MACDStrategy,
+    BollingerBandsStrategy,
+    MomentumStrategy,
+    create_strategy,
+    STRATEGIES,
 )
 
 from .advanced import (
@@ -30,14 +35,27 @@ from .expert import (
 )
 
 __all__ = [
-    'Strategy', 'Signal',
-    'SMACrossover', 'RSIStrategy', 'MACDStrategy',
-    'BollingerBandsStrategy', 'MomentumStrategy',
-    'MeanReversionStrategy', 'BreakoutStrategy',
-    'DualMAStrategy', 'VolatilityStrategy',
-    'CompositeStrategy', 'TrendFollowingStrategy',
-    'ADXStrategy', 'VWAPStrategy', 'OBVStrategy',
-    'CCIStrategy', 'MFIStrategy', 'WilliamsRStrategy',
-    'StochasticStrategy', 'MultiTimeframeStrategy',
-    'create_strategy', 'STRATEGIES'
+    "Strategy",
+    "Signal",
+    "SMACrossover",
+    "RSIStrategy",
+    "MACDStrategy",
+    "BollingerBandsStrategy",
+    "MomentumStrategy",
+    "MeanReversionStrategy",
+    "BreakoutStrategy",
+    "DualMAStrategy",
+    "VolatilityStrategy",
+    "CompositeStrategy",
+    "TrendFollowingStrategy",
+    "ADXStrategy",
+    "VWAPStrategy",
+    "OBVStrategy",
+    "CCIStrategy",
+    "MFIStrategy",
+    "WilliamsRStrategy",
+    "StochasticStrategy",
+    "MultiTimeframeStrategy",
+    "create_strategy",
+    "STRATEGIES",
 ]

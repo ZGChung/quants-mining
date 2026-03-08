@@ -5,7 +5,7 @@ from .portfolio import (
 )
 
 __all__ = [
-    'ClassicalPortfolioOptimizer',
-    'QuantumPortfolioOptimizer',
-    'PortfolioOptimizer',
+    "ClassicalPortfolioOptimizer",
+    "QuantumPortfolioOptimizer",
+    "PortfolioOptimizer",
 ]

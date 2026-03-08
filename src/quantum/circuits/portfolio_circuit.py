@@ -26,6 +26,7 @@ from itertools import product
 try:
     from qiskit import QuantumCircuit
     from qiskit.circuit import Parameter
+
     HAS_QISKIT = True
 except ImportError:
     HAS_QISKIT = False
@@ -45,8 +46,13 @@ class QAOACircuit:
     directly (exact for small n <= 20).
     """
 
-    def __init__(self, expected_returns: np.ndarray, covariance: np.ndarray,
-                 risk_factor: float = 0.5, p: int = 1):
+    def __init__(
+        self,
+        expected_returns: np.ndarray,
+        covariance: np.ndarray,
+        risk_factor: float = 0.5,
+        p: int = 1,
+    ):
         self.mu = np.asarray(expected_returns, dtype=float)
         self.sigma = np.asarray(covariance, dtype=float)
         self.risk_factor = risk_factor
@@ -64,7 +70,7 @@ class QAOACircuit:
         """
         n = self.n_assets
         best_x = np.zeros(n)
-        best_cost = float('inf')
+        best_cost = float("inf")
 
         for bits in product([0, 1], repeat=n):
             x = np.array(bits, dtype=float)
@@ -77,8 +83,9 @@ class QAOACircuit:
 
         return best_x, best_cost
 
-    def build_qiskit_circuit(self, gammas: Optional[List[float]] = None,
-                              betas: Optional[List[float]] = None) -> "QuantumCircuit":
+    def build_qiskit_circuit(
+        self, gammas: Optional[List[float]] = None, betas: Optional[List[float]] = None
+    ) -> "QuantumCircuit":
         """
         Build a Qiskit QuantumCircuit implementing QAOA.
 
@@ -100,8 +107,8 @@ class QAOACircuit:
             qc.h(i)
 
         for layer in range(self.p):
-            gamma = gammas[layer] if gammas else Parameter(f'gamma_{layer}')
-            beta = betas[layer] if betas else Parameter(f'beta_{layer}')
+            gamma = gammas[layer] if gammas else Parameter(f"gamma_{layer}")
+            beta = betas[layer] if betas else Parameter(f"beta_{layer}")
 
             # Cost layer: ZZ interactions from covariance
             for i in range(n):
@@ -162,7 +169,7 @@ class VariationalAnsatz:
             Portfolio weights derived from measurement probabilities
         """
         n = self.n_assets
-        dim = 2 ** n
+        dim = 2**n
         state = np.zeros(dim, dtype=complex)
         state[0] = 1.0  # |00...0>
 
@@ -194,10 +201,10 @@ class VariationalAnsatz:
             for q in range(n - 1):
                 cnot = np.eye(dim)
                 for idx in range(dim):
-                    bits = list(format(idx, f'0{n}b'))
-                    if bits[q] == '1':
-                        bits[q + 1] = '0' if bits[q + 1] == '1' else '1'
-                        target = int(''.join(bits), 2)
+                    bits = list(format(idx, f"0{n}b"))
+                    if bits[q] == "1":
+                        bits[q + 1] = "0" if bits[q + 1] == "1" else "1"
+                        target = int("".join(bits), 2)
                         cnot[idx, idx] = 0
                         cnot[idx, target] = 1
                         cnot[target, target] = 0
@@ -210,9 +217,9 @@ class VariationalAnsatz:
         # Extract per-qubit marginal probabilities as weights
         weights = np.zeros(n)
         for idx in range(dim):
-            bits = format(idx, f'0{n}b')
+            bits = format(idx, f"0{n}b")
             for q in range(n):
-                if bits[q] == '1':
+                if bits[q] == "1":
                     weights[q] += probs[idx]
 
         # Normalize to sum to 1
@@ -224,9 +231,9 @@ class VariationalAnsatz:
 
         return weights
 
-    def optimize_weights(self, expected_returns: np.ndarray,
-                         covariance: np.ndarray,
-                         risk_factor: float = 0.5) -> np.ndarray:
+    def optimize_weights(
+        self, expected_returns: np.ndarray, covariance: np.ndarray, risk_factor: float = 0.5
+    ) -> np.ndarray:
         """
         Optimize circuit parameters to find portfolio weights that
         minimize risk-adjusted cost.
@@ -240,6 +247,5 @@ class VariationalAnsatz:
             return risk_factor * portfolio_risk - portfolio_return
 
         x0 = np.random.randn(self.n_params) * 0.1
-        result = minimize(objective, x0, method='COBYLA',
-                          options={'maxiter': 500})
+        result = minimize(objective, x0, method="COBYLA", options={"maxiter": 500})
         return self.simulate(result.x)

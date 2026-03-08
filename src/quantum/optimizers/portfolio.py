@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 try:
     from qiskit import QuantumCircuit
+
     HAS_QISKIT = True
 except ImportError:
     HAS_QISKIT = False
@@ -43,9 +44,12 @@ class ClassicalPortfolioOptimizer:
     def __init__(self, risk_free_rate: float = 0.02):
         self.risk_free_rate = risk_free_rate
 
-    def optimize(self, expected_returns: np.ndarray,
-                 covariance: np.ndarray,
-                 target_return: Optional[float] = None) -> np.ndarray:
+    def optimize(
+        self,
+        expected_returns: np.ndarray,
+        covariance: np.ndarray,
+        target_return: Optional[float] = None,
+    ) -> np.ndarray:
         """
         Find optimal portfolio weights.
 
@@ -61,19 +65,19 @@ class ClassicalPortfolioOptimizer:
             return w @ covariance @ w
 
         constraints = [
-            {'type': 'eq', 'fun': lambda w: np.sum(w) - 1.0},
-            {'type': 'ineq', 'fun': lambda w: expected_returns @ w - target_return},
+            {"type": "eq", "fun": lambda w: np.sum(w) - 1.0},
+            {"type": "ineq", "fun": lambda w: expected_returns @ w - target_return},
         ]
         bounds = [(0, 1)] * n
         x0 = np.ones(n) / n
 
-        result = minimize(portfolio_variance, x0, method='SLSQP',
-                          bounds=bounds, constraints=constraints)
+        result = minimize(
+            portfolio_variance, x0, method="SLSQP", bounds=bounds, constraints=constraints
+        )
 
         return result.x if result.success else np.ones(n) / n
 
-    def _max_sharpe(self, expected_returns: np.ndarray,
-                    covariance: np.ndarray) -> np.ndarray:
+    def _max_sharpe(self, expected_returns: np.ndarray, covariance: np.ndarray) -> np.ndarray:
         """Maximize Sharpe ratio: (return - rf) / volatility."""
         n = len(expected_returns)
 
@@ -84,18 +88,17 @@ class ClassicalPortfolioOptimizer:
                 return 0
             return -(port_return - self.risk_free_rate) / port_vol
 
-        constraints = [{'type': 'eq', 'fun': lambda w: np.sum(w) - 1.0}]
+        constraints = [{"type": "eq", "fun": lambda w: np.sum(w) - 1.0}]
         bounds = [(0, 1)] * n
         x0 = np.ones(n) / n
 
-        result = minimize(neg_sharpe, x0, method='SLSQP',
-                          bounds=bounds, constraints=constraints)
+        result = minimize(neg_sharpe, x0, method="SLSQP", bounds=bounds, constraints=constraints)
 
         return result.x if result.success else np.ones(n) / n
 
-    def efficient_frontier(self, expected_returns: np.ndarray,
-                           covariance: np.ndarray,
-                           n_points: int = 50) -> Dict:
+    def efficient_frontier(
+        self, expected_returns: np.ndarray, covariance: np.ndarray, n_points: int = 50
+    ) -> Dict:
         """
         Compute the efficient frontier.
 
@@ -118,9 +121,9 @@ class ClassicalPortfolioOptimizer:
             frontier_weights.append(w)
 
         return {
-            'returns': np.array(frontier_returns),
-            'volatilities': np.array(frontier_vols),
-            'weights': np.array(frontier_weights),
+            "returns": np.array(frontier_returns),
+            "volatilities": np.array(frontier_vols),
+            "weights": np.array(frontier_weights),
         }
 
 
@@ -136,8 +139,7 @@ class QuantumPortfolioOptimizer:
         self.risk_factor = risk_factor
         self.qaoa_depth = qaoa_depth
 
-    def optimize(self, expected_returns: np.ndarray,
-                 covariance: np.ndarray) -> np.ndarray:
+    def optimize(self, expected_returns: np.ndarray, covariance: np.ndarray) -> np.ndarray:
         """
         Select assets and return weights.
 
@@ -147,8 +149,7 @@ class QuantumPortfolioOptimizer:
         from src.quantum.circuits import QAOACircuit
 
         circuit = QAOACircuit(
-            expected_returns, covariance,
-            risk_factor=self.risk_factor, p=self.qaoa_depth
+            expected_returns, covariance, risk_factor=self.risk_factor, p=self.qaoa_depth
         )
         selection, cost = circuit.solve()
 
@@ -159,31 +160,33 @@ class QuantumPortfolioOptimizer:
         weights = selection / n_selected
         return weights
 
-    def optimize_with_details(self, expected_returns: np.ndarray,
-                               covariance: np.ndarray) -> Dict:
+    def optimize_with_details(self, expected_returns: np.ndarray, covariance: np.ndarray) -> Dict:
         """Return optimization result with details."""
         from src.quantum.circuits import QAOACircuit
 
         circuit = QAOACircuit(
-            expected_returns, covariance,
-            risk_factor=self.risk_factor, p=self.qaoa_depth
+            expected_returns, covariance, risk_factor=self.risk_factor, p=self.qaoa_depth
         )
         selection, cost = circuit.solve()
 
         n_selected = int(selection.sum())
-        weights = selection / n_selected if n_selected > 0 else np.ones(len(expected_returns)) / len(expected_returns)
+        weights = (
+            selection / n_selected
+            if n_selected > 0
+            else np.ones(len(expected_returns)) / len(expected_returns)
+        )
 
         port_return = expected_returns @ weights
         port_risk = np.sqrt(weights @ covariance @ weights)
 
         return {
-            'weights': weights,
-            'selection': selection,
-            'n_selected': n_selected,
-            'cost': cost,
-            'expected_return': port_return,
-            'risk': port_risk,
-            'method': 'qaoa_classical_simulation',
+            "weights": weights,
+            "selection": selection,
+            "n_selected": n_selected,
+            "cost": cost,
+            "expected_return": port_return,
+            "risk": port_risk,
+            "method": "qaoa_classical_simulation",
         }
 
 
@@ -194,8 +197,7 @@ class PortfolioOptimizer:
     Routes to classical (Markowitz) or quantum (QAOA) method.
     """
 
-    def __init__(self, n_assets: int, method: str = "classical",
-                 risk_factor: float = 0.5):
+    def __init__(self, n_assets: int, method: str = "classical", risk_factor: float = 0.5):
         self.n_assets = n_assets
         self.method = method
         self.risk_factor = risk_factor

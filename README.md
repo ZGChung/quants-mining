@@ -1,4 +1,4 @@
-# QuantMining — A Personal Showcase for Quantitative Trading
+# QuantsMining — A Personal Showcase for Quantitative Trading
 
 > A quantitative trading research platform serving as a personal portfolio and brand showcase. Demonstrates technical depth in trading strategies, backtesting, and quantum approaches — not a product seeking PMF.
 
@@ -104,7 +104,7 @@ quantmining/
 |---------|-------------|
 | DemandPulse | Product — open-source collaboration |
 | TradeSense | Game — entertainment-focused |
-| QuantMining | Showcase — personal branding |
+| QuantsMining | Showcase — personal branding |
 
 ---
 

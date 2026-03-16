@@ -1,5 +1,5 @@
 """
-QuantMining - Quantitative Trading Research Platform
+QuantsMining - Quantitative Trading Research Platform
 A personal project exploring trading strategies, technical analysis,
 and quantum approaches to portfolio optimization.
 """
@@ -25,8 +25,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 
-st.set_page_config(page_title="QuantMining", page_icon="📈", layout="wide")
-st.title("📈 QuantMining")
+st.set_page_config(page_title="QuantsMining", page_icon="📈", layout="wide")
+st.title("📈 QuantsMining")
 st.caption("A personal deep dive into quantitative trading and quantum optimization")
 
 if not src_dir:
@@ -246,12 +246,12 @@ tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
 
 # ============== ABOUT TAB (default) ==============
 with tab1:
-    st.header("About QuantMining")
+    st.header("About QuantsMining")
 
     st.markdown("""
     ## A Personal Deep Dive into Quantitative Trading
 
-    I built QuantMining from scratch as a learning project to deepen my understanding
+    I built QuantsMining from scratch as a learning project to deepen my understanding
     of quantitative trading, technical analysis, and quantum computing approaches
     to portfolio optimization.
 

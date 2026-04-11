@@ -1,7 +1,6 @@
 """
 QuantsMining - Quantitative Trading Research Platform
-A personal project exploring trading strategies, technical analysis,
-and quantum approaches to portfolio optimization.
+A personal project exploring trading strategies and technical analysis.
 """
 
 import sys
@@ -27,7 +26,7 @@ from datetime import datetime, timedelta
 
 st.set_page_config(page_title="QuantsMining", page_icon="📈", layout="wide")
 st.title("📈 QuantsMining")
-st.caption("A personal deep dive into quantitative trading and quantum optimization")
+st.caption("A personal deep dive into quantitative trading")
 
 if not src_dir:
     st.error("Cannot find src directory")
@@ -239,9 +238,9 @@ def display_export_buttons(result, prefix="backtest"):
 
 
 # ---------- TABS ----------
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "ℹ️ About", "📊 Backtest", "📈 Optimize", "📉 Compare",
-    "💹 Paper Trade", "📡 Real Data", "⚛️ Quantum Portfolio"
+    "💹 Paper Trade", "📡 Real Data"
 ])
 
 # ============== ABOUT TAB (default) ==============
@@ -252,13 +251,12 @@ with tab1:
     ## A Personal Deep Dive into Quantitative Trading
 
     I built QuantsMining from scratch as a learning project to deepen my understanding
-    of quantitative trading, technical analysis, and quantum computing approaches
-    to portfolio optimization.
+    of quantitative trading and technical analysis.
 
     ### What I Explored
 
     **Classical Trading Strategies**
-    - Implemented 15 strategies from textbook indicators (SMA, RSI, MACD, Bollinger)
+    - Implemented 15+ strategies from textbook indicators (SMA, RSI, MACD, Bollinger)
       to more advanced approaches (ADX trend following, VWAP, CCI, MFI, Stochastic)
     - Each strategy follows the same `Strategy` base class with `generate_signals()`
 
@@ -268,21 +266,14 @@ with tab1:
     - Implemented risk metrics: VaR, CVaR, Sortino ratio, Calmar ratio,
       profit factor, information ratio
 
-    **Quantum Portfolio Optimization**
-    - Formulated portfolio selection as a QUBO problem
-    - Implemented QAOA circuit for combinatorial asset selection
-      (classical simulation via brute-force enumeration)
-    - Built variational ansatz for continuous weight optimization
-    - Compared against classical Markowitz mean-variance optimization
-
-    **Quantum Machine Learning**
-    - Implemented quantum feature maps (angle encoding + ZZ entanglement)
-    - Built variational quantum classifier for BUY/SELL signal prediction
-    - All quantum circuits simulated classically via numpy state vectors
+    **Portfolio Optimization**
+    - Classical Markowitz mean-variance optimization
+    - Efficient frontier computation
+    - Risk-adjusted return maximization
 
     **Data Engineering**
     - Multi-source data pipeline: Yahoo Finance, Alpha Vantage, Finnhub
-    - 17 technical indicators with caching and rate limiting
+    - 17+ technical indicators with caching and rate limiting
     - Market scanner for momentum, volatility, and oversold screening
 
     ### Tech Stack
@@ -291,7 +282,6 @@ with tab1:
     | Frontend | Streamlit |
     | Data | yfinance, Alpha Vantage API, Finnhub API |
     | Computation | NumPy, Pandas, SciPy |
-    | Quantum | Custom numpy simulation, optional Qiskit |
     | ML | scikit-learn, SciPy optimize |
     | CI/CD | GitHub Actions (pytest, black, flake8, mypy) |
 
@@ -636,89 +626,4 @@ with tab6:
         st.success(f"🟢 Market Open — {status['time']}")
     else:
         st.warning(f"🔴 Market Closed — {status['time']}")
-
-# ============== QUANTUM PORTFOLIO TAB ==============
-with tab7:
-    st.header("Quantum Portfolio Optimization")
-    st.info("Compare classical Markowitz optimization with quantum (QAOA) asset selection")
-
-    qp_tickers = st.multiselect("Assets", STOCK_POOLS["Tech"] + STOCK_POOLS["Finance"],
-                                default=["AAPL", "MSFT", "GOOGL", "NVDA"], key="qp_tickers")
-    qp_risk = st.slider("Risk Aversion Factor", 0.1, 2.0, 0.5, key="qp_risk")
-
-    if st.button("⚛️ Optimize Portfolio", type="primary") and len(qp_tickers) >= 2:
-        with st.spinner("Computing optimal portfolio..."):
-            try:
-                start = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")
-                stock_data = generate_multiple_stocks(qp_tickers, start_date=start)
-
-                # Compute returns and covariance
-                closes = pd.DataFrame({t: stock_data[t]['Close'] for t in qp_tickers})
-                daily_returns = closes.pct_change().dropna()
-                mu = daily_returns.mean().values * 252
-                sigma = daily_returns.cov().values * 252
-
-                from quantum.optimizers import ClassicalPortfolioOptimizer, QuantumPortfolioOptimizer
-
-                # Classical: Markowitz
-                classical_opt = ClassicalPortfolioOptimizer()
-                classical_weights = classical_opt.optimize(mu, sigma)
-
-                # Quantum: QAOA
-                quantum_opt = QuantumPortfolioOptimizer(risk_factor=qp_risk)
-                quantum_result = quantum_opt.optimize_with_details(mu, sigma)
-                quantum_weights = quantum_result['weights']
-
-                st.subheader("📊 Optimal Weights")
-                weight_df = pd.DataFrame({
-                    'Asset': qp_tickers,
-                    'Classical (Markowitz)': np.round(classical_weights, 4),
-                    'Quantum (QAOA)': np.round(quantum_weights, 4),
-                })
-                st.dataframe(weight_df, use_container_width=True)
-
-                # Portfolio metrics comparison
-                st.subheader("📈 Portfolio Comparison")
-                c_ret = mu @ classical_weights
-                c_vol = np.sqrt(classical_weights @ sigma @ classical_weights)
-                q_ret = mu @ quantum_weights
-                q_vol = np.sqrt(quantum_weights @ sigma @ quantum_weights)
-
-                m1, m2, m3, m4 = st.columns(4)
-                m1.metric("Classical Return", f"{c_ret:.2%}")
-                m2.metric("Classical Vol", f"{c_vol:.2%}")
-                m3.metric("Quantum Return", f"{q_ret:.2%}")
-                m4.metric("Quantum Vol", f"{q_vol:.2%}")
-
-                # Weight charts
-                chart_col1, chart_col2 = st.columns(2)
-                with chart_col1:
-                    st.caption("Classical (Markowitz) Weights")
-                    chart_df = pd.DataFrame({'weight': classical_weights}, index=qp_tickers)
-                    st.bar_chart(chart_df)
-                with chart_col2:
-                    st.caption("Quantum (QAOA) Weights")
-                    chart_df = pd.DataFrame({'weight': quantum_weights}, index=qp_tickers)
-                    st.bar_chart(chart_df)
-
-                # Efficient frontier
-                st.subheader("🎯 Efficient Frontier")
-                frontier = classical_opt.efficient_frontier(mu, sigma, n_points=30)
-                frontier_df = pd.DataFrame({
-                    'Volatility': frontier['volatilities'],
-                    'Return': frontier['returns'],
-                })
-                st.line_chart(frontier_df.set_index('Volatility'))
-
-                # QAOA details
-                with st.expander("⚛️ QAOA Details"):
-                    st.write(f"**Assets selected:** {int(quantum_result['n_selected'])} of {len(qp_tickers)}")
-                    st.write(f"**Selection vector:** {quantum_result['selection']}")
-                    st.write(f"**QUBO cost:** {quantum_result['cost']:.4f}")
-                    st.write(f"**Method:** {quantum_result['method']}")
-
-            except Exception as e:
-                st.error(f"Error: {e}")
-                import traceback
-                st.code(traceback.format_exc())
 
